@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор экономии моющих средств</title>
+  <meta name="description" content="Интерактивный калькулятор экономии для демонстрации выгоды перехода на современные жидкие моющие средства. Работает офлайн, один файл." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <style>
+    :root{
+      --blue:#2c7be5; --green:#2fcb7c; --bg:#ffffff; --fg:#0f172a; --muted:#64748b; --card:#f8fafc; --border:#e2e8f0;
+      --danger:#ef4444; --warn:#f59e0b;
+    }
+    .dark:root, .dark{
+      --bg:#0b1220; --fg:#e5e7eb; --muted:#94a3b8; --card:#0f172a; --border:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--fg)}
+    header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,var(--bg),rgba(0,0,0,0));backdrop-filter:saturate(120%) blur(6px);border-bottom:1px solid var(--border)}
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:36px;height:36px;border-radius:10px;background:conic-gradient(from 180deg,var(--blue),var(--green));display:grid;place-items:center;color:white;font-weight:800}
+    .title{font-size:18px;font-weight:700}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--fg);padding:10px 14px;border-radius:14px;cursor:pointer;font-weight:600}
+    .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+    .btn.success{background:var(--green);border-color:var(--green);color:#003314}
+    .btn.ghost{background:transparent}
+    .btn.icon{padding:10px;border-radius:12px;display:grid;place-items:center;min-width:44px}
+    .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+    .grid{display:grid;gap:14px}
+    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}
+    .card h2{margin:0 0 8px 0;font-size:16px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+    .field input, .field select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--fg)}
+    .inline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .pill{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(44,123,229,0.12);color:var(--blue);border:1px solid rgba(44,123,229,0.25)}
+    .warn{color:var(--warn);font-size:12px}
+    .danger{color:var(--danger);font-size:12px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse}
+    th, td{padding:10px;border-bottom:1px dashed var(--border);font-size:13px;text-align:left}
+    tfoot td{font-weight:700}
+    canvas{width:100%;height:320px}
+    .kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .kpi .item{padding:14px;border-radius:14px;border:1px solid var(--border);background:var(--bg)}
+    .item h3{margin:0 0 6px 0;font-size:12px;color:var(--muted)}
+    .item .val{font-size:20px;font-weight:800}
+    footer{padding:40px 16px;color:var(--muted);text-align:center}
+    @media (max-width: 980px){.grid.cols-3{grid-template-columns:1fr}.grid.cols-2{grid-template-columns:1fr}.kpi{grid-template-columns:repeat(2,1fr)}header .container{gap:12px}}
+    @media (max-width: 520px){.kpi{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container inline" style="justify-content:space-between">
+      <div class="brand">
+        <div class="logo" aria-label="logo">A</div>
+        <div>
+          <div class="title" data-i18n="appTitle">Калькулятор экономии моющих средств</div>
+          <div style="font-size:12px;color:var(--muted)" data-i18n="appSubtitle">Демонстрация выгоды для прачечных, химчисток, отелей</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <select id="lang" class="btn">
+          <option value="ru">RU</option>
+          <option value="en">EN</option>
+        </select>
+        <button id="themeToggle" class="btn icon" title="Theme">🌓</button>
+        <button id="resetBtn" class="btn ghost">⟲ <span data-i18n="reset">Сброс</span></button>
+        <button id="calcBtn" class="btn primary">⚙ <span data-i18n="calculate">Рассчитать</span></button>
+        <button id="pdfBtn" class="btn success">⬇ <span data-i18n="export">Экспорт в PDF</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:20px">
+    <!-- KPIs -->
+    <section class="kpi" id="kpis">
+      <div class="item"><h3 data-i18n="kpi_cost_old">Стоимость 1 кг (текущ.)</h3><div class="val" id="kpiCostOld">—</div></div>
+      <div class="item"><h3 data-i18n="kpi_cost_new">Стоимость 1 кг (новая)</h3><div class="val" id="kpiCostNew">—</div></div>
+      <div class="item"><h3 data-i18n="kpi_saving_kg">Экономия / кг</h3><div class="val" id="kpiSavingKg">—</div></div>
+      <div class="item"><h3 data-i18n="kpi_saving_year">Экономия / год</h3><div class="val" id="kpiSavingYear">—</div></div>
+    </section>
+
+    <div class="grid cols-2" style="margin-top:16px">
+      <!-- Общие параметры -->
+      <section class="card">
+        <div class="section-title"><h2 data-i18n="section_general">Общие параметры</h2><span class="pill" id="validationBadge">OK</span></div>
+        <div class="grid cols-3">
+          <div class="field"><label data-i18n="load">Загрузка машины (кг)</label><input type="number" id="loadKg" min="1" step="0.1" value="10"></div>
+          <div class="field"><label data-i18n="tariff">Тариф электроэнергии (₽/кВт·ч)</label><input type="number" id="tariff" min="0" step="0.01" value="6"></div>
+          <div class="field"><label data-i18n="workHours">Рабочих часов в день</label><input type="number" id="workHours" min="1" max="24" step="0.5" value="9"></div>
+        </div>
+        <div class="grid cols-3" style="margin-top:10px">
+          <div class="field"><label data-i18n="currTemp">Температура текущей программы (°C)</label><input type="number" id="currTemp" min="0" max="100" step="1" value="60"></div>
+          <div class="field"><label data-i18n="currTime">Время текущей программы (мин)</label><input type="number" id="currTime" min="1" step="1" value="60"></div>
+          <div class="field"><label><span data-i18n="reductions">Снижения (°C / мин)</span></label>
+            <div class="inline">
+              <input type="number" id="deltaTemp" placeholder="ΔT" step="1" value="10" style="flex:1">
+              <input type="number" id="deltaTime" placeholder="Δt" step="1" value="10" style="flex:1">
+            </div>
+            <div style="font-size:11px;color:var(--muted)" data-i18n="reductionHint">Используется лишь для справки; расчёт — по фактическим параметрам новой программы.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Новая программа -->
+      <section class="card">
+        <div class="section-title"><h2 data-i18n="section_new_program">Параметры новой программы</h2></div>
+        <div class="grid cols-3">
+          <div class="field"><label data-i18n="newTemp">Температура новой программы (°C)</label><input type="number" id="newTemp" min="0" max="100" step="1" value="50"></div>
+          <div class="field"><label data-i18n="newTime">Время новой программы (мин)</label><input type="number" id="newTime" min="1" step="1" value="50"></div>
+          <div class="field"><label data-i18n="calcMode">Режим стоимости</label>
+            <select id="priceUnitMode">
+              <option value="perL" data-i18n="pricePerL">Цена указана за литр</option>
+              <option value="perKg" data-i18n="pricePerKg">Цена указана за килограмм</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid cols-2" style="margin-top:16px">
+      <!-- Текущие средства -->
+      <section class="card">
+        <div class="section-title">
+          <h2 data-i18n="section_current">Текущие моющие средства клиента</h2>
+          <div class="inline">
+            <button class="btn icon" id="addCurrent">＋</button>
+            <span class="warn" id="warnCurrent"></span>
+          </div>
+        </div>
+        <div class="grid" id="currentList"></div>
+      </section>
+
+      <!-- Новые средства -->
+      <section class="card">
+        <div class="section-title">
+          <h2 data-i18n="section_new">Наши новые средства</h2>
+          <div class="inline">
+            <button class="btn icon" id="addNew">＋</button>
+            <span class="warn" id="warnNew"></span>
+          </div>
+        </div>
+        <div class="grid" id="newList"></div>
+      </section>
+    </div>
+
+    <!-- Результаты -->
+    <section class="card" style="margin-top:16px">
+      <div class="section-title"><h2 data-i18n="section_results">Результаты</h2></div>
+      <div class="grid cols-2">
+        <div>
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th data-i18n="t_metric">Показатель</th>
+                <th data-i18n="t_current">Текущая</th>
+                <th data-i18n="t_new">Новая</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td data-i18n="chemPerKg">Химия на 1 кг (₽)</td><td id="chemOld">—</td><td id="chemNew">—</td></tr>
+              <tr><td data-i18n="energyPerKg">Энергия на 1 кг (₽)</td><td id="energyOld">—</td><td id="energyNew">—</td></tr>
+              <tr><td data-i18n="totalPerKg">Итого на 1 кг (₽)</td><td id="totalOld">—</td><td id="totalNew">—</td></tr>
+              <tr><td data-i18n="washesPerDay">Стирок в день (шт)</td><td id="washesOld">—</td><td id="washesNew">—</td></tr>
+              <tr><td data-i18n="kgPerDay">Объём в день (кг)</td><td id="kgOld">—</td><td id="kgNew">—</td></tr>
+              <tr><td data-i18n="savingPerDay">Экономия в день (₽)</td><td colspan="2" id="saveDay">—</td></tr>
+              <tr><td data-i18n="savingPerMonth">Экономия в месяц (₽)</td><td colspan="2" id="saveMonth">—</td></tr>
+              <tr><td data-i18n="savingPerYear">Экономия в год (₽)</td><td colspan="2" id="saveYear">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <canvas id="compareChart" height="320"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div>© <span id="year"></span> <span id="brandName">Atlas PRO</span> • <span data-i18n="footerNote">Калькулятор работает офлайн. Данные сохраняются в браузере.</span></div>
+  </footer>
+
+  <!-- CDNs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js"></script>
+
+  <script>
+  // ====== i18n ======
+  const I18N = {
+    ru: {
+      appTitle:"Калькулятор экономии моющих средств",
+      appSubtitle:"Демонстрация выгоды для прачечных, химчисток, отелей",
+      reset:"Сброс", calculate:"Рассчитать", export:"Экспорт в PDF",
+      section_general:"Общие параметры", load:"Загрузка машины (кг)", tariff:"Тариф электроэнергии (₽/кВт·ч)", workHours:"Рабочих часов в день",
+      currTemp:"Температура текущей программы (°C)", currTime:"Время текущей программы (мин)", reductions:"Снижения (°C / мин)", reductionHint:"Используется лишь для справки; расчёт — по фактическим параметрам новой программы.",
+      section_new_program:"Параметры новой программы", newTemp:"Температура новой программы (°C)", newTime:"Время новой программы (мин)",
+      calcMode:"Режим стоимости", pricePerL:"Цена указана за литр", pricePerKg:"Цена указана за килограмм",
+      section_current:"Текущие моющие средства клиента", section_new:"Наши новые средства",
+      field_name:"Название", field_price:"Цена (₽)", field_price_unit:"Цена за", field_perL:"л", field_perKg:"кг", field_usage:"Расход (мл/кг)", field_share:"Участие (%)", field_density:"Вес 1 л (кг)", remove:"Удалить",
+      section_results:"Результаты", t_metric:"Показатель", t_current:"Текущая", t_new:"Новая",
+      chemPerKg:"Химия на 1 кг (₽)", energyPerKg:"Энергия на 1 кг (₽)", totalPerKg:"Итого на 1 кг (₽)", washesPerDay:"Стирок в день (шт)", kgPerDay:"Объём в день (кг)", savingPerDay:"Экономия в день (₽)", savingPerMonth:"Экономия в месяц (₽)", savingPerYear:"Экономия в год (₽)",
+      kpi_cost_old:"Стоимость 1 кг (текущ.)", kpi_cost_new:"Стоимость 1 кг (новая)", kpi_saving_kg:"Экономия / кг", kpi_saving_year:"Экономия / год",
+      footerNote:"Калькулятор работает офлайн. Данные сохраняются в браузере.",
+      warn_share:"Сумма участия не должна превышать 100%",
+      placeholder_name:"Название средства"
+    },
+    en: {
+      appTitle:"Detergent Savings Calculator",
+      appSubtitle:"Demonstrate savings for laundries, dry cleaners, hotels",
+      reset:"Reset", calculate:"Calculate", export:"Export PDF",
+      section_general:"General parameters", load:"Machine load (kg)", tariff:"Electricity tariff (₽/kWh)", workHours:"Working hours per day",
+      currTemp:"Current program temp (°C)", currTime:"Current program time (min)", reductions:"Reductions (°C / min)", reductionHint:"For reference only; calculations use the new program settings.",
+      section_new_program:"New program settings", newTemp:"New program temp (°C)", newTime:"New program time (min)",
+      calcMode:"Price mode", pricePerL:"Price per liter", pricePerKg:"Price per kilogram",
+      section_current:"Customer's current detergents", section_new:"Our new detergents",
+      field_name:"Name", field_price:"Price (₽)", field_price_unit:"Price per", field_perL:"L", field_perKg:"kg", field_usage:"Dose (ml/kg)", field_share:"Share (%)", field_density:"Weight 1 L (kg)", remove:"Remove",
+      section_results:"Results", t_metric:"Metric", t_current:"Current", t_new:"New",
+      chemPerKg:"Chemistry per 1 kg (₽)", energyPerKg:"Energy per 1 kg (₽)", totalPerKg:"Total per 1 kg (₽)", washesPerDay:"Washes/day (pcs)", kgPerDay:"Throughput/day (kg)", savingPerDay:"Savings/day (₽)", savingPerMonth:"Savings/month (₽)", savingPerYear:"Savings/year (₽)",
+      kpi_cost_old:"Cost per kg (current)", kpi_cost_new:"Cost per kg (new)", kpi_saving_kg:"Saving / kg", kpi_saving_year:"Saving / year",
+      footerNote:"Works offline. Your data stays in the browser.",
+      warn_share:"Sum of shares must not exceed 100%",
+      placeholder_name:"Product name"
+    }
+  };
+
+  // ====== State & helpers ======
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const money = n => isFinite(n) ? new Intl.NumberFormat(getLangLocale(), {style:'currency',currency:'RUB',maximumFractionDigits:2}).format(n) : '—';
+  const num = (n, d=0) => isFinite(n) ? Number(n).toFixed(d) : '—';
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+  const getLang = () => localStorage.getItem('calc_lang') || 'ru';
+  const getLangLocale = () => getLang()==='ru' ? 'ru-RU' : 'en-US';
+
+  const LIMITS = {currentMax:5, newMax:8};
+
+  const emptyItem = () => ({ name:'', price:0, usage:0, share:0, density:1.05 });
+
+  const state = {
+    loadKg: 10, tariff: 6, workHours: 9,
+    currTemp: 60, currTime: 60, deltaTemp: 10, deltaTime: 10,
+    newTemp: 50, newTime: 50, priceUnitMode: 'perL',
+    current: [emptyItem()],
+    next: [emptyItem()],
+    brand: 'Atlas PRO'
+  };
+
+  const save = () => localStorage.setItem('detergent_calc_v1', JSON.stringify(state));
+  const restore = () => {
+    const raw = localStorage.getItem('detergent_calc_v1');
+    if(!raw) return;
+    try{ const s = JSON.parse(raw); Object.assign(state, s);}catch(e){}
+  };
+
+  // ====== UI rendering ======
+  function renderI18n(){
+    const lang = getLang();
+    $$('#lang').forEach(el=> el.value = lang);
+    $$('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      const t = I18N[lang][key] || key;
+      if(el.tagName==='INPUT' && el.placeholder){ el.placeholder = t; }
+      else el.textContent = t;
+    });
+    // placeholders for dynamic rows updated in row renderer
+  }
+
+  function setTheme(initial){
+    const stored = localStorage.getItem('calc_theme');
+    const dark = initial ? stored === 'dark' : document.body.classList.toggle('dark');
+    document.body.classList.toggle('dark', dark);
+    if(!initial) localStorage.setItem('calc_theme', dark ? 'dark' : 'light');
+  }
+
+  function rowTemplate(kind, idx, data){
+    const lang = getLang();
+    return `
+    <div class="grid cols-3" data-kind="${kind}" data-index="${idx}">
+      <div class="field">
+        <label>${I18N[lang].field_name}</label>
+        <input type="text" data-field="name" placeholder="${I18N[lang].placeholder_name}" value="${data.name||''}">
+      </div>
+      <div class="field">
+        <label>${I18N[lang].field_price}</label>
+        <div class="inline">
+          <input style="flex:1" type="number" min="0" step="0.01" data-field="price" value="${data.price||0}">
+          <select data-field="priceUnit">
+            <option value="perL" ${state.priceUnitMode==='perL'?'selected':''}>${I18N[lang].field_perL}</option>
+            <option value="perKg" ${state.priceUnitMode==='perKg'?'selected':''}>${I18N[lang].field_perKg}</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>${I18N[lang].field_usage}</label>
+        <input type="number" min="0" step="0.1" data-field="usage" value="${data.usage||0}">
+      </div>
+      <div class="field">
+        <label>${I18N[lang].field_share}</label>
+        <input type="number" min="0" max="100" step="0.1" data-field="share" value="${data.share||0}">
+      </div>
+      <div class="field">
+        <label>${I18N[lang].field_density}</label>
+        <input type="number" min="0.5" max="2" step="0.01" data-field="density" value="${data.density||1.05}">
+      </div>
+      <div class="field" style="justify-content:end">
+        <button class="btn danger" data-action="remove">${I18N[lang].remove}</button>
+      </div>
+    </div>`;
+  }
+
+  function renderLists(){
+    $('#currentList').innerHTML = state.current.map((item,i)=>rowTemplate('current', i, item)).join('');
+    $('#newList').innerHTML = state.next.map((item,i)=>rowTemplate('next', i, item)).join('');
+  }
+
+  function bindDynamic(){
+    ['currentList','newList'].forEach(listId=>{
+      const container = document.getElementById(listId);
+      container.oninput = (e)=>{
+        const row = e.target.closest('[data-kind]'); if(!row) return;
+        const kind = row.getAttribute('data-kind');
+        const idx = +row.getAttribute('data-index');
+        const field = e.target.getAttribute('data-field');
+        const val = (e.target.type==='number') ? +e.target.value : e.target.value;
+        const arr = kind==='current'?state.current:state.next;
+        if(field){ arr[idx][field] = val; save(); calcAndRender(); }
+      };
+      container.onclick = (e)=>{
+        const btn = e.target.closest('[data-action="remove"]');
+        if(!btn) return;
+        const row = btn.closest('[data-kind]');
+        const kind = row.getAttribute('data-kind');
+        const idx = +row.getAttribute('data-index');
+        const arr = kind==='current'?state.current:state.next;
+        arr.splice(idx,1); if(arr.length===0) arr.push(emptyItem());
+        save(); renderLists(); bindDynamic(); calcAndRender();
+      };
+    });
+  }
+
+  function addRow(kind){
+    if(kind==='current' && state.current.length>=LIMITS.currentMax){ shakeWarn('#warnCurrent'); return; }
+    if(kind==='next' && state.next.length>=LIMITS.newMax){ shakeWarn('#warnNew'); return; }
+    (kind==='current'?state.current:state.next).push(emptyItem());
+    save(); renderLists(); bindDynamic();
+  }
+
+  function shakeWarn(sel){
+    const el = $(sel); const lang = getLang();
+    el.textContent = I18N[lang].warn_share; el.style.transition=''; el.style.opacity='1';
+    setTimeout(()=>{ el.style.transition='opacity 1.2s'; el.style.opacity='0';}, 1400);
+  }
+
+  // ====== Calculations ======
+  function calcChemPerKg(items){
+    const mode = state.priceUnitMode; // global switch
+    const sumShare = items.reduce((s,it)=>s + (parseFloat(it.share)||0),0);
+    const over = sumShare>100+1e-6; // tolerance
+    document.getElementById(items===state.current? 'warnCurrent':'warnNew').textContent = over ? I18N[getLang()].warn_share : '';
+    // cost per kg linen
+    // If price per L: cost = price * (usage_ml/1000) * (share%)
+    // If price per Kg: cost = price * (usage_ml/1000) * density * (share%)
+    const cost = items.reduce((acc,it)=>{
+      const price = +it.price||0; const usageL = (+it.usage||0)/1000; const share = (+it.share||0)/100;
+      const density = +it.density||1.05;
+      const unitFactor = (mode==='perL') ? 1 : density;
+      return acc + price * usageL * unitFactor * share;
+    }, 0);
+    return {cost, sumShare};
+  }
+
+  function energyKWh(temp, timeMin){
+    const timeH = (timeMin||0)/60; return 0.05* (temp||0) + 0.1* timeH; // given approximation
+  }
+
+  function calcAll(){
+    const loadKg = +state.loadKg||10; const tariff = +state.tariff||0; const workMin = (+state.workHours||9)*60;
+    const currTemp = +state.currTemp||0; const currTime = +state.currTime||1;
+    const newTemp = +state.newTemp||0; const newTime = +state.newTime||1;
+
+    const chemOld = calcChemPerKg(state.current); // {cost,sumShare}
+    const chemNew = calcChemPerKg(state.next);
+
+    const eOld = energyKWh(currTemp, currTime);
+    const eNew = energyKWh(newTemp, newTime);
+
+    const energyCostOldPerKg = (eOld * tariff) / loadKg;
+    const energyCostNewPerKg = (eNew * tariff) / loadKg;
+
+    const totalOldPerKg = chemOld.cost + energyCostOldPerKg;
+    const totalNewPerKg = chemNew.cost + energyCostNewPerKg;
+
+    const washesOld = Math.floor(workMin / Math.max(currTime,1));
+    const washesNew = Math.floor(workMin / Math.max(newTime,1));
+    const kgOld = washesOld * loadKg;
+    const kgNew = washesNew * loadKg;
+
+    const dayCostOld = totalOldPerKg * kgOld;
+    const dayCostNew = totalNewPerKg * kgNew;
+
+    const saveDay = Math.max(0, dayCostOld - dayCostNew);
+    const saveMonth = saveDay * 30;
+    const saveYear = saveDay * 365;
+
+    return { chemOld, chemNew, energyCostOldPerKg, energyCostNewPerKg, totalOldPerKg, totalNewPerKg, washesOld, washesNew, kgOld, kgNew, saveDay, saveMonth, saveYear };
+  }
+
+  // ====== Render results ======
+  let chart;
+  function calcAndRender(){
+    // sync inputs -> state
+    ['loadKg','tariff','workHours','currTemp','currTime','deltaTemp','deltaTime','newTemp','newTime'].forEach(id=>{
+      const el = document.getElementById(id); if(!el) return; state[id] = +el.value; });
+    state.priceUnitMode = document.getElementById('priceUnitMode').value;
+    save();
+
+    const R = calcAll();
+    $('#chemOld').textContent = money(R.chemOld.cost);
+    $('#chemNew').textContent = money(R.chemNew.cost);
+    $('#energyOld').textContent = money(R.energyCostOldPerKg);
+    $('#energyNew').textContent = money(R.energyCostNewPerKg);
+    $('#totalOld').textContent = money(R.totalOldPerKg);
+    $('#totalNew').textContent = money(R.totalNewPerKg);
+    $('#washesOld').textContent = R.washesOld;
+    $('#washesNew').textContent = R.washesNew;
+    $('#kgOld').textContent = R.kgOld;
+    $('#kgNew').textContent = R.kgNew;
+    $('#saveDay').textContent = money(R.saveDay);
+    $('#saveMonth').textContent = money(R.saveMonth);
+    $('#saveYear').textContent = money(R.saveYear);
+
+    $('#kpiCostOld').textContent = money(R.totalOldPerKg);
+    $('#kpiCostNew').textContent = money(R.totalNewPerKg);
+    $('#kpiSavingKg').textContent = money(Math.max(0, R.totalOldPerKg - R.totalNewPerKg));
+    $('#kpiSavingYear').textContent = money(R.saveYear);
+
+    // Validation badge
+    const sumCurr = R.chemOld.sumShare; const sumNew = R.chemNew.sumShare;
+    const ok = sumCurr<=100.001 && sumNew<=100.001;
+    const badge = $('#validationBadge');
+    badge.textContent = ok ? 'OK' : '>100%';
+    badge.style.background = ok? 'rgba(47,203,124,0.15)' : 'rgba(239,68,68,0.15)';
+    badge.style.color = ok? 'var(--green)' : 'var(--danger)';
+    badge.style.borderColor = ok? 'rgba(47,203,124,0.4)' : 'rgba(239,68,68,0.4)';
+
+    // Chart
+    const ctx = document.getElementById('compareChart');
+    const data = {
+      labels: [I18N[getLang()].t_current, I18N[getLang()].t_new],
+      datasets: [
+        { label: I18N[getLang()].chemPerKg, data: [R.chemOld.cost, R.chemNew.cost], stack: 'cost' },
+        { label: I18N[getLang()].energyPerKg, data: [R.energyCostOldPerKg, R.energyCostNewPerKg], stack: 'cost' }
+      ]
+    };
+    const options = { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ position:'bottom' }, tooltip:{ callbacks:{ label:(ctx)=> `${ctx.dataset.label}: ${money(ctx.parsed.y)}` } } } };
+
+    if(chart){ chart.data = data; chart.options = options; chart.update(); }
+    else { chart = new Chart(ctx, { type:'bar', data, options }); }
+  }
+
+  // ====== PDF export ======
+  async function exportPDF(){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'pt', format:'a4' });
+    const lang = getLang();
+
+    // Header with logo
+    const logoCanvas = document.createElement('canvas');
+    const g = logoCanvas.getContext('2d'); logoCanvas.width=120; logoCanvas.height=120; 
+    const grad = g.createConicGradient(Math.PI,60,60); grad.addColorStop(0,'#2c7be5'); grad.addColorStop(1,'#2fcb7c');
+    g.fillStyle=grad; g.beginPath(); g.arc(60,60,50,0,Math.PI*2); g.fill();
+    g.fillStyle='#fff'; g.font='bold 56px Inter, Arial'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('A',60,66);
+    const logoData = logoCanvas.toDataURL('image/png');
+
+    doc.addImage(logoData,'PNG',40,30,42,42);
+    doc.setFontSize(16); doc.text(`${state.brand} — ${I18N[lang].appTitle}`, 92, 50);
+    doc.setFontSize(10); doc.setTextColor(120); doc.text(new Date().toLocaleString(getLangLocale()), 92, 66);
+    doc.setTextColor(0);
+
+    // Summary KPIs
+    const R = calcAll();
+    const kpi = [
+      [I18N[lang].kpi_cost_old, money(R.totalOldPerKg)],
+      [I18N[lang].kpi_cost_new, money(R.totalNewPerKg)],
+      [I18N[lang].kpi_saving_kg, money(Math.max(0,R.totalOldPerKg-R.totalNewPerKg))],
+      [I18N[lang].kpi_saving_year, money(R.saveYear)]
+    ];
+    doc.autoTable({startY:90, head:[[I18N[lang].t_metric,'']], body:kpi, styles:{ fontSize:10 }});
+
+    // Inputs table
+    const inputs = [
+      [I18N[lang].load, state.loadKg], [I18N[lang].tariff, state.tariff], [I18N[lang].workHours, state.workHours],
+      [I18N[lang].currTemp, state.currTemp], [I18N[lang].currTime, state.currTime], [I18N[lang].newTemp, state.newTemp], [I18N[lang].newTime, state.newTime],
+      [I18N[lang].calcMode, I18N[lang][ state.priceUnitMode==='perL'? 'pricePerL':'pricePerKg' ]]
+    ];
+    doc.autoTable({ startY: doc.lastAutoTable.finalY + 14, head:[[I18N[lang].section_general,'']], body:inputs, styles:{ fontSize:9 } });
+
+    // Detergents tables
+    const toRows = arr => arr.map(it=>[it.name||'', it.price, it.usage, it.share, it.density]);
+    doc.autoTable({ startY: doc.lastAutoTable.finalY + 14, head:[[I18N[lang].section_current,'Цена', 'Расход (мл/кг)','Участие (%)','Вес 1 л (кг)']], body: toRows(state.current), styles:{ fontSize:8 } });
+    doc.autoTable({ startY: doc.lastAutoTable.finalY + 8, head:[[I18N[lang].section_new,'Цена', 'Расход (мл/кг)','Участие (%)','Вес 1 л (кг)']], body: toRows(state.next), styles:{ fontSize:8 } });
+
+    // Chart image
+    const chartCanvas = document.getElementById('compareChart');
+    const chartImg = chartCanvas.toDataURL('image/png', 1.0);
+    const w = 460; const h = w * chartCanvas.height / chartCanvas.width;
+    doc.addPage();
+    doc.setFontSize(12); doc.text(I18N[lang].section_results, 40, 40);
+    doc.addImage(chartImg, 'PNG', 40, 60, w, h);
+
+    // Results table
+    const resRows = [
+      [I18N[lang].chemPerKg, money(R.chemOld.cost), money(R.chemNew.cost)],
+      [I18N[lang].energyPerKg, money(R.energyCostOldPerKg), money(R.energyCostNewPerKg)],
+      [I18N[lang].totalPerKg, money(R.totalOldPerKg), money(R.totalNewPerKg)],
+      [I18N[lang].washesPerDay, R.washesOld, R.washesNew],
+      [I18N[lang].kgPerDay, R.kgOld, R.kgNew],
+      [I18N[lang].savingPerDay, money(R.saveDay), ''],
+      [I18N[lang].savingPerMonth, money(R.saveMonth), ''],
+      [I18N[lang].savingPerYear, money(R.saveYear), '']
+    ];
+    doc.autoTable({ startY: 60+h+16, head:[[I18N[lang].t_metric, I18N[lang].t_current, I18N[lang].t_new]], body:resRows, styles:{ fontSize:9 } });
+
+    doc.save('detergent-savings.pdf');
+  }
+
+  // ====== Init ======
+  function init(){
+    restore();
+
+    // set inputs
+    $('#loadKg').value = state.loadKg; $('#tariff').value = state.tariff; $('#workHours').value = state.workHours;
+    $('#currTemp').value = state.currTemp; $('#currTime').value = state.currTime; $('#deltaTemp').value = state.deltaTemp; $('#deltaTime').value = state.deltaTime;
+    $('#newTemp').value = state.newTemp; $('#newTime').value = state.newTime; $('#priceUnitMode').value = state.priceUnitMode;
+
+    renderLists(); bindDynamic();
+
+    // Events
+    $('#addCurrent').onclick = ()=> addRow('current');
+    $('#addNew').onclick = ()=> addRow('next');
+    $('#calcBtn').onclick = calcAndRender;
+    $('#pdfBtn').onclick = exportPDF;
+    $('#resetBtn').onclick = ()=>{ if(confirm('Сбросить все данные?')){ localStorage.removeItem('detergent_calc_v1'); location.reload(); } };
+
+    // autosave for header inputs
+    $$('input, select').forEach(el=>{
+      el.addEventListener('change', ()=>{ calcAndRender(); });
+      el.addEventListener('input', ()=>{ calcAndRender(); });
+    });
+
+    // Language & theme
+    $('#lang').value = getLang();
+    $('#lang').onchange = (e)=>{ localStorage.setItem('calc_lang', e.target.value); renderI18n(); renderLists(); calcAndRender(); };
+    setTheme(true); $('#themeToggle').onclick = ()=> setTheme(false);
+
+    // footer year
+    $('#year').textContent = new Date().getFullYear();
+
+    renderI18n();
+    calcAndRender();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
