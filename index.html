@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Калькулятор экономии моющих средств</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%232c7be5%22/></svg>">
-  <meta name="description" content="Онлайн-калькулятор экономии моющих средств — расчёт стоимости 1 кг, экономии энергии, производительности и годовой экономии. Работает локально и на GitHub Pages." />
 
-  <!-- CDN libraries -->
+  <!-- CDN библиотеки -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
@@ -21,21 +20,15 @@
     .logo{width:54px;height:54px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
     h1{font-size:18px;margin:0}
     p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
-
     .top-controls{margin-left:auto;display:flex;gap:8px}
     select,input[type=search]{padding:8px;border-radius:8px;border:1px solid #e6eef8}
     button{cursor:pointer}
-
     main{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
     @media(min-width:980px){main{grid-template-columns:360px 1fr}}
-
     .card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 8px 20px rgba(15,30,60,0.06)}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
     input[type=number], input[type=text]{width:100%;padding:8px;border-radius:8px;border:1px solid #e9f0fb}
-
     .section-title{font-weight:600;color:var(--blue);margin-bottom:8px}
-
-    /* tables for detergents */
     .table-wrap{overflow:auto}
     table.dt{width:100%;border-collapse:collapse}
     table.dt thead th{background:#f0f7ff;padding:8px;border-bottom:1px solid #e6f0ff;color:#234}
@@ -46,31 +39,12 @@
     .btn.ghost{background:transparent;border:1px solid var(--blue);color:var(--blue)}
     .btn.secondary{background:#6b7280}
     .remove{color:#e53935;font-weight:700;border:none;background:transparent;cursor:pointer}
-
-    /* results */
     .results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     @media(max-width:640px){.results-grid{grid-template-columns:1fr}}
     .stat{padding:12px;border-radius:10px;background:#fff}
     .stat h4{margin:0;font-size:12px;color:var(--muted)}
     .stat p{margin:6px 0 0;font-size:18px;font-weight:700}
-
-    /* small footer */
     footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
-
-    /* responsive: table -> stacked on small screens */
-    @media(max-width:640px){
-      table.dt, table.dt thead, table.dt tbody, table.dt th, table.dt td, table.dt tr{display:block}
-      table.dt thead tr{position:absolute;top:-9999px;left:-9999px}
-      table.dt tr{margin:0 0 12px}
-      table.dt td{border:none;position:relative;padding-left:50%}
-      table.dt td:before{position:absolute;left:12px;top:10px;width:45%;padding-right:10px;white-space:nowrap;font-weight:600}
-      table.dt td[data-label="Название"]:before{content:"Название"}
-      table.dt td[data-label="Цена"]:before{content:"Цена за упаковку (₽)"}
-      table.dt td[data-label="Вес"]:before{content:"Вес упаковки (кг)"}
-      table.dt td[data-label="Дозировка"]:before{content:"Дозировка (мл/г)"}
-      table.dt td[data-label="Действие"]:before{content:""}
-    }
-
   </style>
 </head>
 <body>
@@ -81,9 +55,8 @@
         <h1 id="appTitle">Калькулятор экономии моющих средств</h1>
         <p class="lead">Покажите клиенту экономию на химии и энергии при переходе на современные средства</p>
       </div>
-
       <div class="top-controls">
-        <select id="langSelect" title="Language">
+        <select id="langSelect">
           <option value="ru">RU</option>
           <option value="en">EN</option>
         </select>
@@ -92,376 +65,102 @@
     </header>
 
     <main>
-      <!-- left column: inputs -->
+      <!-- Левая колонка -->
       <section class="card">
         <div class="section-title">Общие параметры</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <label id="labelLoad">Загрузка машины (кг)</label>
-            <input id="machineLoad" type="number" min="1" value="10" />
-          </div>
-          <div>
-            <label id="labelTariff">Тариф электроэнергии (₽/кВт·ч)</label>
-            <input id="energyTariff" type="number" min="0" step="0.01" value="6.5" />
-          </div>
+          <div><label>Загрузка машины (кг)</label><input id="machineLoad" type="number" min="1" value="10" /></div>
+          <div><label>Тариф электроэнергии (₽/кВт·ч)</label><input id="energyTariff" type="number" step="0.01" value="6.5" /></div>
         </div>
-
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-          <div>
-            <label id="labelWork">Рабочих часов в день</label>
-            <input id="workHours" type="number" min="1" value="9" />
-          </div>
-          <div>
-            <label>Уровни скидок (опционально)</label>
-            <input id="discountHint" type="text" placeholder="Например: от 10 канистр — скидка" />
-          </div>
+          <div><label>Рабочих часов в день</label><input id="workHours" type="number" min="1" value="9" /></div>
+          <div><label>Уровни скидок</label><input id="discountHint" type="text" /></div>
         </div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eef6ff" />
+        <hr style="margin:12px 0"/>
 
         <div class="section-title">Текущие моющие средства</div>
-        <div class="table-wrap">
-          <table id="currentTable" class="dt">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Цена за упаковку (₽)</th>
-                <th>Вес упаковки (кг)</th>
-                <th>Дозировка (мл/г) на 1 кг</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="actions">
-          <button class="btn" id="addCurrent">+ Добавить средство</button>
-          <button class="btn ghost" id="clearCurrent">Сбросить</button>
-        </div>
+        <div class="table-wrap"><table id="currentTable" class="dt"><thead><tr><th>Название</th><th>Цена</th><th>Вес (кг)</th><th>Дозировка</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="actions"><button class="btn" id="addCurrent">+ Добавить средство</button><button class="btn ghost" id="clearCurrent">Сбросить</button></div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eef6ff" />
+        <hr style="margin:12px 0"/>
 
         <div class="section-title">Наши новые средства</div>
-        <div class="table-wrap">
-          <table id="newTable" class="dt">
-            <thead>
-              <tr>
-                <th>Название</th>
-                <th>Цена за упаковку (₽)</th>
-                <th>Вес упаковки (кг)</th>
-                <th>Дозировка (мл/г) на 1 кг</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div class="actions">
-          <button class="btn" id="addNew">+ Добавить средство</button>
-          <button class="btn ghost" id="clearNew">Сбросить</button>
-        </div>
-
+        <div class="table-wrap"><table id="newTable" class="dt"><thead><tr><th>Название</th><th>Цена</th><th>Вес (кг)</th><th>Дозировка</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="actions"><button class="btn" id="addNew">+ Добавить средство</button><button class="btn ghost" id="clearNew">Сбросить</button></div>
       </section>
 
-      <!-- right column: program params + results -->
+      <!-- Правая колонка -->
       <section>
         <div class="card">
           <div class="section-title">Параметры программ</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-            <div>
-              <label id="labelNewTemp">Температура новой программы (°C)</label>
-              <input id="newTemp" type="number" min="0" value="40" />
-            </div>
-            <div>
-              <label id="labelNewTime">Время новой программы (мин)</label>
-              <input id="newTime" type="number" min="1" value="45" />
-            </div>
-            <div>
-              <label id="labelOldTime">Старое время (мин)</label>
-              <input id="oldTime" type="number" min="1" value="60" />
-            </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <div><label>Температура старой программы (°C)</label><input id="oldTemp" type="number" value="60" /></div>
+            <div><label>Температура новой программы (°C)</label><input id="newTemp" type="number" value="40" /></div>
+            <div><label>Время старой (мин)</label><input id="oldTime" type="number" value="60" /></div>
+            <div><label>Время новой (мин)</label><input id="newTime" type="number" value="45" /></div>
           </div>
-
-          <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+          <div style="margin-top:10px;display:flex;gap:8px">
             <button class="btn" id="calcBtn">Рассчитать</button>
             <button class="btn ghost" id="resetBtn">Сбросить всё</button>
-            <div style="margin-left:auto;color:var(--muted);font-size:13px">Автосохранение: включено</div>
           </div>
         </div>
 
         <div class="card" style="margin-top:12px">
           <div class="section-title">Результаты</div>
-
           <div class="results-grid">
-            <div class="stat"><h4>Стоимость 1 кг (химия)</h4><p id="costOldChem">— ₽</p></div>
-            <div class="stat"><h4>Стоимость 1 кг (химия) — новая</h4><p id="costNewChem">— ₽</p></div>
-            <div class="stat"><h4>Стоимость энергии на 1 кг — старое</h4><p id="costOldEnergy">— ₽</p></div>
-            <div class="stat"><h4>Стоимость энергии на 1 кг — новое</h4><p id="costNewEnergy">— ₽</p></div>
-            <div class="stat"><h4>Экономия на 1 кг</h4><p id="savingPerKg">— ₽</p></div>
-            <div class="stat"><h4>Экономия в день (новая пропускная способность)</h4><p id="savingDay">— ₽</p></div>
+            <div class="stat"><h4>Стоимость 1 кг (химия)</h4><p id="costOldChem">—</p></div>
+            <div class="stat"><h4>Стоимость 1 кг (химия) — новая</h4><p id="costNewChem">—</p></div>
+            <div class="stat"><h4>Энергия на 1 кг — старая</h4><p id="costOldEnergy">—</p></div>
+            <div class="stat"><h4>Энергия на 1 кг — новая</h4><p id="costNewEnergy">—</p></div>
           </div>
-
-          <div style="margin-top:12px"><canvas id="chartCompare" height="160"></canvas></div>
-
-          <div style="margin-top:12px;overflow:auto">
-            <table style="width:100%;border-collapse:collapse">
-              <thead><tr><th style="text-align:left;padding:8px">Показатель</th><th style="padding:8px">Текущий</th><th style="padding:8px">Новый</th></tr></thead>
-              <tbody>
-                <tr><td style="padding:8px">Стоимость 1 кг (химия)</td><td id="t_old_chem" style="padding:8px">—</td><td id="t_new_chem" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Стоимость 1 кг (энергия)</td><td id="t_old_energy" style="padding:8px">—</td><td id="t_new_energy" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Время программы (мин)</td><td id="t_old_time" style="padding:8px">—</td><td id="t_new_time" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Стирок в день</td><td id="t_old_runs" style="padding:8px">—</td><td id="t_new_runs" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Объём в день (кг)</td><td id="t_old_vol" style="padding:8px">—</td><td id="t_new_vol" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Экономия в месяц (≈22 раб. дня)</td><td colspan="2" id="t_month_save" style="padding:8px">—</td></tr>
-                <tr><td style="padding:8px">Экономия в год (≈264 раб. дня)</td><td colspan="2" id="t_year_save" style="padding:8px">—</td></tr>
-              </tbody>
-            </table>
-          </div>
-
+          <canvas id="chartCompare" height="160"></canvas>
         </div>
       </section>
-
     </main>
 
-    <footer>
-      <div>Один файл: <strong>index.html</strong> — работает локально и на GitHub Pages / Netlify.</div>
-    </footer>
+    <footer>index.html — работает локально и на GitHub Pages</footer>
   </div>
 
   <script>
-    // ===================== i18n strings =====================
-    const I18N = {
-      ru: {
-        appTitle: 'Калькулятор экономии моющих средств',
-        add: '+ Добавить средство', reset: 'Сбросить', calc: 'Рассчитать', export: 'Экспорт в PDF', resetAll: 'Сбросить всё', autosaveOn: 'Автосохранение: включено'
-      }, en: {
-        appTitle: 'Detergent Savings Calculator', add: '+ Add detergent', reset: 'Reset', calc: 'Calculate', export: 'Export to PDF', resetAll: 'Reset all', autosaveOn: 'Autosave: on'
-      }
-    }
-
-    // ===================== helpers =====================
-    const $ = id => document.getElementById(id);
-    const money = v => (typeof v === 'number' ? v.toFixed(2) + ' ₽' : '—');
-
-    // default state
-    let state = {
-      machineLoad: 10,
-      energyTariff: 6.5,
-      workHours: 9,
-      current: [],
-      new: [],
-      newTemp: 40,
-      newTime: 45,
-      oldTime: 60,
-      lang: 'ru'
-    }
-
-    // load from localStorage
-    function loadState(){
-      try{const s = JSON.parse(localStorage.getItem('detergent_calc_v1')); if(s) state = Object.assign(state,s);}catch(e){console.warn(e)}
-    }
-    function saveState(){ localStorage.setItem('detergent_calc_v1', JSON.stringify(state)); }
-
-    loadState();
-
-    // ===================== UI: table rows =====================
-    function makeRow(item, tableType, idx){
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td data-label="Название"><input type="text" value="${escapeHtml(item.name||'')}" placeholder="Название" data-field="name"/></td>
-        <td data-label="Цена"><input type="number" min="0" step="0.01" value="${item.price||0}" data-field="price"/></td>
-        <td data-label="Вес"><input type="number" min="0.001" step="0.001" value="${item.weight||1}" data-field="weight"/></td>
-        <td data-label="Дозировка"><input type="number" min="0" step="0.01" value="${item.dose||0}" data-field="dose"/></td>
-        <td data-label="Действие"><button class="remove" title="Удалить">✖</button></td>
-      `;
-      // bindings
-      tr.querySelectorAll('input').forEach(inp=>{
-        inp.addEventListener('input', ()=>{
-          const field = inp.getAttribute('data-field');
-          const val = inp.type === 'number' ? parseFloat(inp.value||0) : inp.value;
-          state[tableType][idx][field] = val;
-          saveState(); compute();
-        });
-      });
-      tr.querySelector('.remove').addEventListener('click', ()=>{
-        state[tableType].splice(idx,1); renderTables(); saveState(); compute();
-      });
-      return tr;
-    }
-
-    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    function renderTables(){
-      // current
-      const curBody = $('currentTable').querySelector('tbody'); curBody.innerHTML='';
-      state.current.forEach((it,idx)=> curBody.appendChild(makeRow(it,'current',idx)));
-      // new
-      const newBody = $('newTable').querySelector('tbody'); newBody.innerHTML='';
-      state.new.forEach((it,idx)=> newBody.appendChild(makeRow(it,'new',idx)));
-    }
-
-    // add row utilities
-    function addDetergent(type){ state[type].push({name:'',price:0,weight:1,dose:0}); renderTables(); saveState(); }
-    function clearTable(type){ if(confirm('Очистить список?')){ state[type]=[]; renderTables(); saveState(); compute(); } }
-
-    // initial: ensure at least one row each (but only if state empty)
-    if(!state.current.length) state.current.push({name:'Пример',price:0,weight:1,dose:0});
-    if(!state.new.length) state.new.push({name:'Новое',price:0,weight:1,dose:0});
-
-    // bind buttons
-    $('addCurrent').addEventListener('click', ()=>addDetergent('current'));
-    $('addNew').addEventListener('click', ()=>addDetergent('new'));
-    $('clearCurrent').addEventListener('click', ()=>clearTable('current'));
-    $('clearNew').addEventListener('click', ()=>clearTable('new'));
-    $('resetBtn').addEventListener('click', ()=>{ if(confirm('Сбросить все данные?')){ localStorage.removeItem('detergent_calc_v1'); location.reload(); } });
-
-    // general inputs binding
-    $('machineLoad').addEventListener('input', ()=>{ state.machineLoad = parseFloat($('machineLoad').value||1); saveState(); compute(); });
-    $('energyTariff').addEventListener('input', ()=>{ state.energyTariff = parseFloat($('energyTariff').value||0); saveState(); compute(); });
-    $('workHours').addEventListener('input', ()=>{ state.workHours = parseFloat($('workHours').value||9); saveState(); compute(); });
-    $('newTemp').addEventListener('input', ()=>{ state.newTemp = parseFloat($('newTemp').value||40); saveState(); compute(); });
-    $('newTime').addEventListener('input', ()=>{ state.newTime = parseFloat($('newTime').value||45); saveState(); compute(); });
-    $('oldTime').addEventListener('input', ()=>{ state.oldTime = parseFloat($('oldTime').value||60); saveState(); compute(); });
-
-    // set UI from state
-    function initUI(){
-      $('machineLoad').value = state.machineLoad;
-      $('energyTariff').value = state.energyTariff;
-      $('workHours').value = state.workHours;
-      $('newTemp').value = state.newTemp;
-      $('newTime').value = state.newTime;
-      $('oldTime').value = state.oldTime;
-      $('langSelect').value = state.lang || 'ru';
-      applyLang(state.lang || 'ru');
-    }
-
-    // ===================== Calculations =====================
-    // cost: Σ (price_package × dose / (weight_package * 1000))
-    function costPerKg(list){ if(!Array.isArray(list) || !list.length) return 0; let sum=0; list.forEach(it=>{ const price=Number(it.price)||0; const weight=Number(it.weight)||1; const dose=Number(it.dose)||0; const fraction = dose / (weight*1000); sum += price * fraction; }); return sum; }
-
-    // Energy formula: Energy (kWh) ≈ 0.05 × temperature + 0.1 × time_hours
-    function energyKWh(temp, timeMin){ const th = (timeMin||0)/60; return 0.05*(temp||0) + 0.1*th; }
-    function energyCostPerKg(temp, timeMin, tariff, machineLoad){ const e = energyKWh(temp,timeMin); return (e * (tariff||0)) / (machineLoad||1); }
-
-    // runs per day: minutesAvailable / time_program; minutesAvailable = workHours*60
-    function runsPerDay(timeMin, workHours){ const minutesAvailable = (workHours||9) * 60; return Math.floor(minutesAvailable / (timeMin||1)); }
-
-    // compute and render results
+    const $=id=>document.getElementById(id);
+    const money=v=>(typeof v==="number"?v.toFixed(2)+" ₽":"—");
+    let state={machineLoad:10,energyTariff:6.5,workHours:9,current:[],new:[],oldTemp:60,newTemp:40,oldTime:60,newTime:45};
+    function costPerKg(list){let s=0;list.forEach(it=>{s+= (it.price||0)*((it.dose||0)/(it.weight*1000||1));});return s;}
+    function energyKWh(t,min){return 0.05*t+0.1*(min/60);}
+    function energyCostPerKg(temp,min,tariff,load){return (energyKWh(temp,min)*tariff)/load;}
+    function runsPerDay(min,h){return Math.floor((h*60)/min);}
     let chart;
     function compute(){
-      // chemical costs
-      const oldChem = costPerKg(state.current);
-      const newChem = costPerKg(state.new);
-      // energy costs
-      // For 'old' energy we use oldTime (and assume same temp as newTemp? We'll assume client's previous temp equals newTemp for simplicity unless different param added)
-      const oldEnergyCost = energyCostPerKg(state.newTemp, state.oldTime, state.energyTariff, state.machineLoad);
-      const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad);
-
-      const oldTotal = oldChem + oldEnergyCost;
-      const newTotal = newChem + newEnergyCost;
-      const savePerKg = oldTotal - newTotal;
-
-      // runs/volumes
-      const oldRuns = runsPerDay(state.oldTime, state.workHours);
-      const newRuns = runsPerDay(state.newTime, state.workHours);
-      const oldVol = oldRuns * state.machineLoad;
-      const newVol = newRuns * state.machineLoad;
-
-      const dailySaving = savePerKg * newVol; // assume client moves to new program throughput
-      const monthlySaving = dailySaving * 22; // approx working days
-      const yearlySaving = dailySaving * 264; // 12*22
-
-      // fill UI
-      $('costOldChem').innerText = money(oldChem);
-      $('costNewChem').innerText = money(newChem);
-      $('costOldEnergy').innerText = money(oldEnergyCost);
-      $('costNewEnergy').innerText = money(newEnergyCost);
-      $('savingPerKg').innerText = money(savePerKg);
-      $('savingDay').innerText = money(dailySaving);
-
-      $('t_old_chem').innerText = money(oldChem);
-      $('t_new_chem').innerText = money(newChem);
-      $('t_old_energy').innerText = money(oldEnergyCost);
-      $('t_new_energy').innerText = money(newEnergyCost);
-      $('t_old_time').innerText = state.oldTime + ' мин';
-      $('t_new_time').innerText = state.newTime + ' мин';
-      $('t_old_runs').innerText = oldRuns + ' ц.';
-      $('t_new_runs').innerText = newRuns + ' ц.';
-      $('t_old_vol').innerText = oldVol + ' кг';
-      $('t_new_vol').innerText = newVol + ' кг';
-      $('t_month_save').innerText = money(monthlySaving);
-      $('t_year_save').innerText = money(yearlySaving);
-
-      // chart
-      const ctx = $('chartCompare').getContext('2d');
-      const dataOld = [oldChem, oldEnergyCost];
-      const dataNew = [newChem, newEnergyCost];
-      if(!chart){
-        chart = new Chart(ctx, {
-          type: 'bar',
-          data: {labels:['Химия','Энергия (на 1 кг)'], datasets:[{label:'Текущая',data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},{label:'Новая',data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}]},
-          options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
-        });
-      } else {
-        chart.data.datasets[0].data = dataOld; chart.data.datasets[1].data = dataNew; chart.update();
-      }
-
-      saveState();
+      const oldChem=costPerKg(state.current),newChem=costPerKg(state.new);
+      const oldE=energyCostPerKg(state.oldTemp,state.oldTime,state.energyTariff,state.machineLoad);
+      const newE=energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad);
+      $("costOldChem").innerText=money(oldChem);$("costNewChem").innerText=money(newChem);
+      $("costOldEnergy").innerText=money(oldE);$("costNewEnergy").innerText=money(newE);
+      const ctx=$("chartCompare").getContext("2d");
+      if(!chart){chart=new Chart(ctx,{type:"bar",data:{labels:["Химия","Энергия"],datasets:[{label:"Старая",data:[oldChem,oldE],backgroundColor:"rgba(44,123,229,0.8)"},{label:"Новая",data:[newChem,newE],backgroundColor:"rgba(47,203,124,0.8)"}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});}
+      else{chart.data.datasets[0].data=[oldChem,oldE];chart.data.datasets[1].data=[newChem,newE];chart.update();}
     }
-
-    // ===================== PDF export =====================
-    async function exportPdf(){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({unit:'pt',format:'a4'});
-      doc.setFontSize(14); doc.text(state.lang === 'en' ? 'Savings report' : 'Отчёт по экономии', 40, 50);
-      doc.setFontSize(10); doc.text(new Date().toLocaleString(), 40, 66);
-      // logo placeholder
-      doc.setFillColor(44,123,229); doc.rect(480,30,60,30,'F');
-
-      // table: main numbers
-      const rows = [
-        ['Показатель','Текущий','Новый'],
-        ['Стоимость 1 кг (химия)', money(costPerKg(state.current)), money(costPerKg(state.new))],
-        ['Стоимость 1 кг (энергия)', money(energyCostPerKg(state.newTemp,state.oldTime,state.energyTariff,state.machineLoad)), money(energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad))],
-      ];
-      doc.autoTable({startY:100,head:[rows[0]],body:rows.slice(1),theme:'grid'});
-
-      // chart image
-      try{
-        const canvas = $('chartCompare');
-        const img = canvas.toDataURL('image/png',1.0);
-        const y = doc.lastAutoTable.finalY + 20;
-        doc.addImage(img,'PNG',40,y,520,200);
-      }catch(e){console.warn('chart capture failed',e)}
-
-      doc.save('savings_report.pdf');
-    }
-
-    $('exportBtn').addEventListener('click', exportPdf);
-    $('calcBtn').addEventListener('click', compute);
-
-    // ===================== i18n =====================
-    function applyLang(lang){
-      state.lang = lang;
-      const s = I18N[lang] || I18N.ru;
-      $('appTitle').innerText = s.appTitle || 'Calculator';
-      $('addCurrent').innerText = s.add || '+ Add';
-      $('addNew').innerText = s.add || '+ Add';
-      $('clearCurrent').innerText = s.reset || 'Reset';
-      $('clearNew').innerText = s.reset || 'Reset';
-      $('calcBtn').innerText = s.calc || 'Calculate';
-      $('exportBtn').innerText = s.export || 'Export';
-      $('resetBtn').innerText = s.resetAll || 'Reset all';
-      saveState();
-    }
-    $('langSelect').addEventListener('change', ()=>{ applyLang($('langSelect').value); compute(); });
-
-    // ===================== init =====================
-    initUI(); renderTables(); compute();
-
-    // autosave on unload
-    window.addEventListener('beforeunload', saveState);
-
+    $("calcBtn").addEventListener("click",compute);
+    $("exportBtn").addEventListener("click",async()=>{
+      const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"pt",format:"a4"});doc.setFont("helvetica","");doc.setFontSize(14);doc.text("Отчёт по экономии",40,50);
+      const oldChem=costPerKg(state.current),newChem=costPerKg(state.new);
+      const oldE=energyCostPerKg(state.oldTemp,state.oldTime,state.energyTariff,state.machineLoad);
+      const newE=energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad);
+      const oldT=oldChem+oldE,newT=newChem+newE,saveKg=oldT-newT;
+      const newVol=runsPerDay(state.newTime,state.workHours)*state.machineLoad;
+      const yearSave=saveKg*newVol*264;
+      doc.autoTable({startY:80,head:[["Показатель","Старая","Новая"]],body:[
+        ["Стоимость 1 кг (химия)",oldChem.toFixed(2),newChem.toFixed(2)],
+        ["Стоимость 1 кг (энергия)",oldE.toFixed(2),newE.toFixed(2)],
+        ["Итог (₽/кг)",oldT.toFixed(2),newT.toFixed(2)],
+        ["Экономия на 1 кг","",saveKg.toFixed(2)],
+        ["Экономия в год","",yearSave.toFixed(2)]
+      ]});
+      const img=$("chartCompare").toDataURL("image/png",1.0);
+      doc.addImage(img,"PNG",40,doc.lastAutoTable.finalY+20,500,200);
+      doc.save("savings_report.pdf");
+    });
   </script>
 </body>
 </html>
