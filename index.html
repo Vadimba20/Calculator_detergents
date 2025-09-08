@@ -71,6 +71,47 @@
       table.dt td[data-label="Действие"]:before{content:""}
     }
 
+    /* Validation styles */
+    .validation-error {
+      border: 1px solid #e53935 !important;
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #ccc;
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .info-text {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
   </style>
 </head>
 <body>
@@ -112,8 +153,8 @@
             <input id="workHours" type="number" min="1" value="9" />
           </div>
           <div>
-            <label>Уровни скидок (опционально)</label>
-            <input id="discountHint" type="text" placeholder="Например: от 10 канистр — скидка" />
+            <label>Тариф воды (₽/м³) <span class="tooltip">ℹ<span class="tooltiptext">Стоимость одного кубометра воды</span></span></label>
+            <input id="waterTariff" type="number" min="0" step="0.01" value="45" />
           </div>
         </div>
 
@@ -167,7 +208,15 @@
       <section>
         <div class="card">
           <div class="section-title">Параметры программ</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+            <div>
+              <label id="labelOldTemp">Температура текущей программы (°C)</label>
+              <input id="oldTemp" type="number" min="0" value="60" />
+            </div>
+            <div>
+              <label id="labelOldTime">Время текущей программы (мин)</label>
+              <input id="oldTime" type="number" min="1" value="60" />
+            </div>
             <div>
               <label id="labelNewTemp">Температура новой программы (°C)</label>
               <input id="newTemp" type="number" min="0" value="40" />
@@ -176,10 +225,17 @@
               <label id="labelNewTime">Время новой программы (мин)</label>
               <input id="newTime" type="number" min="1" value="45" />
             </div>
-            <div>
-              <label id="labelOldTime">Старое время (мин)</label>
-              <input id="oldTime" type="number" min="1" value="60" />
-            </div>
+          </div>
+          
+          <div style="margin-top:10px">
+            <label>Мощность стиральной машины (кВт) <span class="tooltip">ℹ<span class="tooltiptext">Указана в технических характеристиках машины</span></span></label>
+            <input id="machinePower" type="number" min="0.1" step="0.1" value="2.5" />
+          </div>
+          
+          <div style="margin-top:10px">
+            <label>Расход воды (л/кг белья) <span class="tooltip">ℹ<span class="tooltiptext">Примерный расход воды на килограмм белья</span></span></label>
+            <input id="waterConsumption" type="number" min="1" step="0.5" value="10" />
+            <div class="info-text">Обычно от 8 до 15 литров на кг в современных машинах</div>
           </div>
 
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
@@ -197,6 +253,8 @@
             <div class="stat"><h4>Стоимость 1 кг (химия) — новая</h4><p id="costNewChem">— ₽</p></div>
             <div class="stat"><h4>Стоимость энергии на 1 кг — старое</h4><p id="costOldEnergy">— ₽</p></div>
             <div class="stat"><h4>Стоимость энергии на 1 кг — новое</h4><p id="costNewEnergy">— ₽</p></div>
+            <div class="stat"><h4>Стоимость воды на 1 кг — старое</h4><p id="costOldWater">— ₽</p></div>
+            <div class="stat"><h4>Стоимость воды на 1 кг — новое</h4><p id="costNewWater">— ₽</p></div>
             <div class="stat"><h4>Экономия на 1 кг</h4><p id="savingPerKg">— ₽</p></div>
             <div class="stat"><h4>Экономия в день (новая пропускная способность)</h4><p id="savingDay">— ₽</p></div>
           </div>
@@ -209,6 +267,7 @@
               <tbody>
                 <tr><td style="padding:8px">Стоимость 1 кг (химия)</td><td id="t_old_chem" style="padding:8px">—</td><td id="t_new_chem" style="padding:8px">—</td></tr>
                 <tr><td style="padding:8px">Стоимость 1 кг (энергия)</td><td id="t_old_energy" style="padding:8px">—</td><td id="t_new_energy" style="padding:8px">—</td></tr>
+                <tr><td style="padding:8px">Стоимость 1 кг (вода)</td><td id="t_old_water" style="padding:8px">—</td><td id="t_new_water" style="padding:8px">—</td></tr>
                 <tr><td style="padding:8px">Время программы (мин)</td><td id="t_old_time" style="padding:8px">—</td><td id="t_new_time" style="padding:8px">—</td></tr>
                 <tr><td style="padding:8px">Стирок в день</td><td id="t_old_runs" style="padding:8px">—</td><td id="t_new_runs" style="padding:8px">—</td></tr>
                 <tr><td style="padding:8px">Объём в день (кг)</td><td id="t_old_vol" style="padding:8px">—</td><td id="t_new_vol" style="padding:8px">—</td></tr>
@@ -248,11 +307,15 @@
       machineLoad: 10,
       energyTariff: 6.5,
       workHours: 9,
+      waterTariff: 45,
       current: [],
       new: [],
+      oldTemp: 60,
       newTemp: 40,
       newTime: 45,
       oldTime: 60,
+      machinePower: 2.5,
+      waterConsumption: 10,
       lang: 'ru'
     }
 
@@ -263,6 +326,18 @@
     function saveState(){ localStorage.setItem('detergent_calc_v1', JSON.stringify(state)); }
 
     loadState();
+
+    // ===================== Validation =====================
+    function validateInput(input, min, max) {
+      const value = parseFloat(input.value);
+      if (isNaN(value) || value < min || (max !== undefined && value > max)) {
+        input.classList.add('validation-error');
+        return false;
+      } else {
+        input.classList.remove('validation-error');
+        return true;
+      }
+    }
 
     // ===================== UI: table rows =====================
     function makeRow(item, tableType, idx){
@@ -279,6 +354,13 @@
         inp.addEventListener('input', ()=>{
           const field = inp.getAttribute('data-field');
           const val = inp.type === 'number' ? parseFloat(inp.value||0) : inp.value;
+          
+          // Validate input
+          if (inp.type === 'number') {
+            const min = field === 'weight' ? 0.001 : 0;
+            validateInput(inp, min);
+          }
+          
           state[tableType][idx][field] = val;
           saveState(); compute();
         });
@@ -315,50 +397,132 @@
     $('clearNew').addEventListener('click', ()=>clearTable('new'));
     $('resetBtn').addEventListener('click', ()=>{ if(confirm('Сбросить все данные?')){ localStorage.removeItem('detergent_calc_v1'); location.reload(); } });
 
-    // general inputs binding
-    $('machineLoad').addEventListener('input', ()=>{ state.machineLoad = parseFloat($('machineLoad').value||1); saveState(); compute(); });
-    $('energyTariff').addEventListener('input', ()=>{ state.energyTariff = parseFloat($('energyTariff').value||0); saveState(); compute(); });
-    $('workHours').addEventListener('input', ()=>{ state.workHours = parseFloat($('workHours').value||9); saveState(); compute(); });
-    $('newTemp').addEventListener('input', ()=>{ state.newTemp = parseFloat($('newTemp').value||40); saveState(); compute(); });
-    $('newTime').addEventListener('input', ()=>{ state.newTime = parseFloat($('newTime').value||45); saveState(); compute(); });
-    $('oldTime').addEventListener('input', ()=>{ state.oldTime = parseFloat($('oldTime').value||60); saveState(); compute(); });
+    // general inputs binding with validation
+    function bindInputWithValidation(inputId, stateProperty, min, max) {
+      const input = $(inputId);
+      input.addEventListener('input', ()=>{
+        if (validateInput(input, min, max)) {
+          state[stateProperty] = parseFloat(input.value);
+          saveState(); 
+          compute();
+        }
+      });
+    }
+
+    bindInputWithValidation('machineLoad', 'machineLoad', 1);
+    bindInputWithValidation('energyTariff', 'energyTariff', 0);
+    bindInputWithValidation('workHours', 'workHours', 1, 24);
+    bindInputWithValidation('waterTariff', 'waterTariff', 0);
+    bindInputWithValidation('oldTemp', 'oldTemp', 0, 100);
+    bindInputWithValidation('newTemp', 'newTemp', 0, 100);
+    bindInputWithValidation('newTime', 'newTime', 1);
+    bindInputWithValidation('oldTime', 'oldTime', 1);
+    bindInputWithValidation('machinePower', 'machinePower', 0.1, 10);
+    bindInputWithValidation('waterConsumption', 'waterConsumption', 1, 20);
 
     // set UI from state
     function initUI(){
       $('machineLoad').value = state.machineLoad;
       $('energyTariff').value = state.energyTariff;
       $('workHours').value = state.workHours;
+      $('waterTariff').value = state.waterTariff;
+      $('oldTemp').value = state.oldTemp;
       $('newTemp').value = state.newTemp;
       $('newTime').value = state.newTime;
       $('oldTime').value = state.oldTime;
+      $('machinePower').value = state.machinePower;
+      $('waterConsumption').value = state.waterConsumption;
       $('langSelect').value = state.lang || 'ru';
       applyLang(state.lang || 'ru');
     }
 
-    // ===================== Calculations =====================
+    // ===================== Improved Calculations =====================
     // cost: Σ (price_package × dose / (weight_package * 1000))
-    function costPerKg(list){ if(!Array.isArray(list) || !list.length) return 0; let sum=0; list.forEach(it=>{ const price=Number(it.price)||0; const weight=Number(it.weight)||1; const dose=Number(it.dose)||0; const fraction = dose / (weight*1000); sum += price * fraction; }); return sum; }
+    function costPerKg(list){ 
+      if(!Array.isArray(list) || !list.length) return 0; 
+      let sum=0; 
+      list.forEach(it=>{ 
+        const price=Number(it.price)||0; 
+        const weight=Number(it.weight)||1; 
+        const dose=Number(it.dose)||0; 
+        const fraction = dose / (weight*1000); 
+        sum += price * fraction; 
+      }); 
+      return sum; 
+    }
 
-    // Energy formula: Energy (kWh) ≈ 0.05 × temperature + 0.1 × time_hours
-    function energyKWh(temp, timeMin){ const th = (timeMin||0)/60; return 0.05*(temp||0) + 0.1*th; }
-    function energyCostPerKg(temp, timeMin, tariff, machineLoad){ const e = energyKWh(temp,timeMin); return (e * (tariff||0)) / (machineLoad||1); }
+    // Improved Energy formula with machine power
+    function energyKWh(temp, timeMin, power){
+      // Heating energy (assuming 80% of power for heating)
+      const heatingPower = power * 0.8;
+      // Motor energy (assuming 20% of power for motor)
+      const motorPower = power * 0.2;
+      
+      // Heating time (estimated as 50% of program time or until target temp reached)
+      const heatingTime = Math.min(timeMin * 0.5, 30); // Max 30 minutes for heating
+      const motorTime = timeMin;
+      
+      // Calculate energy consumption
+      const heatingEnergy = (heatingPower * heatingTime / 60) * (temp / 80); // Normalized to 80°C
+      const motorEnergy = motorPower * motorTime / 60;
+      
+      return heatingEnergy + motorEnergy;
+    }
+
+    function energyCostPerKg(temp, timeMin, tariff, machineLoad, power){
+      const e = energyKWh(temp, timeMin, power);
+      return (e * (tariff||0)) / (machineLoad||1);
+    }
+
+    // Water cost calculation
+    function waterCostPerKg(waterConsumption, tariff, machineLoad) {
+      const waterPerLoad = waterConsumption * machineLoad; // liters per load
+      const waterCostPerLoad = (waterPerLoad * tariff) / 1000; // convert to m³ and calculate cost
+      return waterCostPerLoad / machineLoad; // cost per kg
+    }
 
     // runs per day: minutesAvailable / time_program; minutesAvailable = workHours*60
-    function runsPerDay(timeMin, workHours){ const minutesAvailable = (workHours||9) * 60; return Math.floor(minutesAvailable / (timeMin||1)); }
+    function runsPerDay(timeMin, workHours){ 
+      const minutesAvailable = (workHours||9) * 60; 
+      return Math.floor(minutesAvailable / (timeMin||1)); 
+    }
 
     // compute and render results
     let chart;
     function compute(){
+      // Validate all inputs before calculation
+      const inputsValid = [
+        validateInput($('machineLoad'), 1),
+        validateInput($('energyTariff'), 0),
+        validateInput($('workHours'), 1, 24),
+        validateInput($('waterTariff'), 0),
+        validateInput($('oldTemp'), 0, 100),
+        validateInput($('newTemp'), 0, 100),
+        validateInput($('newTime'), 1),
+        validateInput($('oldTime'), 1),
+        validateInput($('machinePower'), 0.1, 10),
+        validateInput($('waterConsumption'), 1, 20)
+      ].every(valid => valid);
+      
+      if (!inputsValid) {
+        alert('Пожалуйста, проверьте введенные данные. Некоторые значения некорректны.');
+        return;
+      }
+
       // chemical costs
       const oldChem = costPerKg(state.current);
       const newChem = costPerKg(state.new);
-      // energy costs
-      // For 'old' energy we use oldTime (and assume same temp as newTemp? We'll assume client's previous temp equals newTemp for simplicity unless different param added)
-      const oldEnergyCost = energyCostPerKg(state.newTemp, state.oldTime, state.energyTariff, state.machineLoad);
-      const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad);
+      
+      // energy costs - using improved formula
+      const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
+      const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
+      
+      // water costs
+      const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
+      const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
 
-      const oldTotal = oldChem + oldEnergyCost;
-      const newTotal = newChem + newEnergyCost;
+      const oldTotal = oldChem + oldEnergyCost + oldWaterCost;
+      const newTotal = newChem + newEnergyCost + newWaterCost;
       const savePerKg = oldTotal - newTotal;
 
       // runs/volumes
@@ -376,6 +540,8 @@
       $('costNewChem').innerText = money(newChem);
       $('costOldEnergy').innerText = money(oldEnergyCost);
       $('costNewEnergy').innerText = money(newEnergyCost);
+      $('costOldWater').innerText = money(oldWaterCost);
+      $('costNewWater').innerText = money(newWaterCost);
       $('savingPerKg').innerText = money(savePerKg);
       $('savingDay').innerText = money(dailySaving);
 
@@ -383,6 +549,8 @@
       $('t_new_chem').innerText = money(newChem);
       $('t_old_energy').innerText = money(oldEnergyCost);
       $('t_new_energy').innerText = money(newEnergyCost);
+      $('t_old_water').innerText = money(oldWaterCost);
+      $('t_new_water').innerText = money(newWaterCost);
       $('t_old_time').innerText = state.oldTime + ' мин';
       $('t_new_time').innerText = state.newTime + ' мин';
       $('t_old_runs').innerText = oldRuns + ' ц.';
@@ -394,16 +562,38 @@
 
       // chart
       const ctx = $('chartCompare').getContext('2d');
-      const dataOld = [oldChem, oldEnergyCost];
-      const dataNew = [newChem, newEnergyCost];
+      const dataOld = [oldChem, oldEnergyCost, oldWaterCost];
+      const dataNew = [newChem, newEnergyCost, newWaterCost];
       if(!chart){
         chart = new Chart(ctx, {
           type: 'bar',
-          data: {labels:['Химия','Энергия (на 1 кг)'], datasets:[{label:'Текущая',data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},{label:'Новая',data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}]},
-          options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true}}}
+          data: {
+            labels:['Химия','Энергия','Вода'],
+            datasets:[
+              {label:'Текущая', data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},
+              {label:'Новая', data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}
+            ]
+          },
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            scales:{y:{beginAtZero:true}},
+            plugins: {
+              legend: { position: 'top' },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' ₽';
+                  }
+                }
+              }
+            }
+          }
         });
       } else {
-        chart.data.datasets[0].data = dataOld; chart.data.datasets[1].data = dataNew; chart.update();
+        chart.data.datasets[0].data = dataOld; 
+        chart.data.datasets[1].data = dataNew; 
+        chart.update();
       }
 
       saveState();
@@ -422,7 +612,8 @@
       const rows = [
         ['Показатель','Текущий','Новый'],
         ['Стоимость 1 кг (химия)', money(costPerKg(state.current)), money(costPerKg(state.new))],
-        ['Стоимость 1 кг (энергия)', money(energyCostPerKg(state.newTemp,state.oldTime,state.energyTariff,state.machineLoad)), money(energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad))],
+        ['Стоимость 1 кг (энергия)', money(energyCostPerKg(state.oldTemp,state.oldTime,state.energyTariff,state.machineLoad, state.machinePower)), money(energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad, state.machinePower))],
+        ['Стоимость 1 кг (вода)', money(waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad)), money(waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad))],
       ];
       doc.autoTable({startY:100,head:[rows[0]],body:rows.slice(1),theme:'grid'});
 
