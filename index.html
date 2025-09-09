@@ -292,9 +292,23 @@
     const I18N = {
       ru: {
         appTitle: 'Калькулятор экономии моющих средств',
-        add: '+ Добавить средство', reset: 'Сбросить', calc: 'Рассчитать', export: 'Экспорт в PDF', resetAll: 'Сбросить всё', autosaveOn: 'Автосохранение: включено'
-      }, en: {
-        appTitle: 'Detergent Savings Calculator', add: '+ Add detergent', reset: 'Reset', calc: 'Calculate', export: 'Export to PDF', resetAll: 'Reset all', autosaveOn: 'Autosave: on'
+        add: '+ Добавить средство', reset: 'Сбросить', calc: 'Рассчитать', export: 'Экспорт в PDF', resetAll: 'Сбросить всё', autosaveOn: 'Автосохранение: включено',
+        reportTitle: 'Отчёт по экономии',
+        parameter: 'Показатель', current: 'Текущий', new: 'Новый',
+        chemCost: 'Стоимость 1 кг (химия)', energyCost: 'Стоимость 1 кг (энергия)', waterCost: 'Стоимость 1 кг (вода)',
+        chemistry: 'Химия', energy: 'Энергия', water: 'Вода',
+        programTime: 'Время программы (мин)', runsPerDay: 'Стирок в день', volumePerDay: 'Объём в день (кг)',
+        monthSaving: 'Экономия в месяц (≈22 раб. дня)', yearSaving: 'Экономия в год (≈264 раб. дня)'
+      }, 
+      en: {
+        appTitle: 'Detergent Savings Calculator', 
+        add: '+ Add detergent', reset: 'Reset', calc: 'Calculate', export: 'Export to PDF', resetAll: 'Reset all', autosaveOn: 'Autosave: on',
+        reportTitle: 'Savings report',
+        parameter: 'Parameter', current: 'Current', new: 'New',
+        chemCost: 'Cost per kg (chemistry)', energyCost: 'Cost per kg (energy)', waterCost: 'Cost per kg (water)',
+        chemistry: 'Chemistry', energy: 'Energy', water: 'Water',
+        programTime: 'Program time (min)', runsPerDay: 'Runs per day', volumePerDay: 'Volume per day (kg)',
+        monthSaving: 'Monthly saving (≈22 work days)', yearSaving: 'Yearly saving (≈264 work days)'
       }
     }
 
@@ -568,10 +582,10 @@
         chart = new Chart(ctx, {
           type: 'bar',
           data: {
-            labels:['Химия','Энергия','Вода'],
+            labels:[I18N[state.lang].chemistry, I18N[state.lang].energy, I18N[state.lang].water],
             datasets:[
-              {label:'Текущая', data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},
-              {label:'Новая', data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}
+              {label: I18N[state.lang].current, data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},
+              {label: I18N[state.lang].new, data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}
             ]
           },
           options:{
@@ -602,29 +616,110 @@
     // ===================== PDF export =====================
     async function exportPdf(){
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({unit:'pt',format:'a4'});
-      doc.setFontSize(14); doc.text(state.lang === 'en' ? 'Savings report' : 'Отчёт по экономии', 40, 50);
-      doc.setFontSize(10); doc.text(new Date().toLocaleString(), 40, 66);
-      // logo placeholder
-      doc.setFillColor(44,123,229); doc.rect(480,30,60,30,'F');
-
-      // table: main numbers
-      const rows = [
-        ['Показатель','Текущий','Новый'],
-        ['Стоимость 1 кг (химия)', money(costPerKg(state.current)), money(costPerKg(state.new))],
-        ['Стоимость 1 кг (энергия)', money(energyCostPerKg(state.oldTemp,state.oldTime,state.energyTariff,state.machineLoad, state.machinePower)), money(energyCostPerKg(state.newTemp,state.newTime,state.energyTariff,state.machineLoad, state.machinePower))],
-        ['Стоимость 1 кг (вода)', money(waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad)), money(waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad))],
-      ];
-      doc.autoTable({startY:100,head:[rows[0]],body:rows.slice(1),theme:'grid'});
-
-      // chart image
-      try{
+      
+      // Create a new PDF
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text(I18N[state.lang].reportTitle, 105, 20, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(12);
+      doc.text(new Date().toLocaleString(), 105, 30, { align: 'center' });
+      
+      // Add logo
+      doc.setFillColor(44, 123, 229);
+      doc.rect(180, 10, 15, 15, 'F');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('L', 187.5, 20, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      
+      // Calculate values for the table
+      const oldChem = costPerKg(state.current);
+      const newChem = costPerKg(state.new);
+      const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
+      const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
+      const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
+      const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
+      
+      // Add summary table
+      doc.setFontSize(14);
+      doc.text('Сравнение стоимости на 1 кг белья:', 20, 50);
+      
+      doc.setFontSize(12);
+      doc.text('Показатель', 20, 60);
+      doc.text('Текущий', 100, 60);
+      doc.text('Новый', 160, 60);
+      
+      // Add horizontal line
+      doc.line(20, 65, 190, 65);
+      
+      let yPos = 75;
+      
+      // Add table rows
+      doc.text(I18N[state.lang].chemCost, 20, yPos);
+      doc.text(money(oldChem), 100, yPos);
+      doc.text(money(newChem), 160, yPos);
+      yPos += 10;
+      
+      doc.text(I18N[state.lang].energyCost, 20, yPos);
+      doc.text(money(oldEnergyCost), 100, yPos);
+      doc.text(money(newEnergyCost), 160, yPos);
+      yPos += 10;
+      
+      doc.text(I18N[state.lang].waterCost, 20, yPos);
+      doc.text(money(oldWaterCost), 100, yPos);
+      doc.text(money(newWaterCost), 160, yPos);
+      yPos += 15;
+      
+      // Add economic indicators
+      const oldRuns = runsPerDay(state.oldTime, state.workHours);
+      const newRuns = runsPerDay(state.newTime, state.workHours);
+      const oldVol = oldRuns * state.machineLoad;
+      const newVol = newRuns * state.machineLoad;
+      const oldTotal = oldChem + oldEnergyCost + oldWaterCost;
+      const newTotal = newChem + newEnergyCost + newWaterCost;
+      const savePerKg = oldTotal - newTotal;
+      const dailySaving = savePerKg * newVol;
+      const monthlySaving = dailySaving * 22;
+      const yearlySaving = dailySaving * 264;
+      
+      doc.setFontSize(14);
+      doc.text('Экономические показатели:', 20, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(12);
+      doc.text(`Экономия на 1 кг: ${money(savePerKg)}`, 20, yPos);
+      yPos += 10;
+      
+      doc.text(`Экономия в день: ${money(dailySaving)}`, 20, yPos);
+      yPos += 10;
+      
+      doc.text(`Экономия в месяц (22 дня): ${money(monthlySaving)}`, 20, yPos);
+      yPos += 10;
+      
+      doc.text(`Экономия в год (264 дня): ${money(yearlySaving)}`, 20, yPos);
+      yPos += 20;
+      
+      // Add chart as image if available
+      try {
         const canvas = $('chartCompare');
-        const img = canvas.toDataURL('image/png',1.0);
-        const y = doc.lastAutoTable.finalY + 20;
-        doc.addImage(img,'PNG',40,y,520,200);
-      }catch(e){console.warn('chart capture failed',e)}
-
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Add chart title
+        doc.setFontSize(14);
+        doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
+        yPos += 10;
+        
+        // Add chart image
+        doc.addImage(imgData, 'PNG', 40, yPos, 130, 80);
+      } catch(e) {
+        console.warn('Chart capture failed', e);
+      }
+      
+      // Save the PDF
       doc.save('savings_report.pdf');
     }
 
@@ -643,6 +738,15 @@
       $('calcBtn').innerText = s.calc || 'Calculate';
       $('exportBtn').innerText = s.export || 'Export';
       $('resetBtn').innerText = s.resetAll || 'Reset all';
+      
+      // Update chart labels if chart exists
+      if (chart) {
+        chart.data.labels = [s.chemistry, s.energy, s.water];
+        chart.data.datasets[0].label = s.current;
+        chart.data.datasets[1].label = s.new;
+        chart.update();
+      }
+      
       saveState();
     }
     $('langSelect').addEventListener('change', ()=>{ applyLang($('langSelect').value); compute(); });
