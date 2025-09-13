@@ -785,97 +785,119 @@
     }
 
     // ===================== PDF export =====================
-    async function exportPdf(){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+   async function exportPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-      doc.setFontSize(20);
-      doc.text(I18N[state.lang].reportTitle, 105, 20, { align: 'center' });
-      doc.setFontSize(12);
-      doc.text(new Date().toLocaleString(), 105, 30, { align: 'center' });
+  // Заголовок
+  doc.setFontSize(20);
+  doc.text(I18N[state.lang].reportTitle, 105, 20, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text(new Date().toLocaleString(), 105, 30, { align: 'center' });
 
-      // Logo
-      doc.setFillColor(0, 123, 204);
-      doc.rect(180, 10, 15, 15, 'F');
-      doc.setFontSize(14);
-      doc.setTextColor(255, 255, 255);
-      doc.text('A', 187.5, 20, { align: 'center' });
-      doc.setTextColor(0, 0, 0);
+  // Логотип
+  doc.setFillColor(0, 123, 204);
+  doc.rect(180, 10, 15, 15, 'F');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('A', 187.5, 20, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
 
-      const oldChem = costPerKg(state.current);
-      const newChem = costPerKg(state.new);
-      const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
-      const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
-      const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
-      const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
+  // Вычисления
+  const oldChem = costPerKg(state.current);
+  const newChem = costPerKg(state.new);
+  const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
+  const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
+  const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
+  const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
 
-      doc.setFontSize(14);
-      doc.text('Сравнение стоимости на 1 кг белья:', 20, 50);
+  // Таблица сравнения
+  doc.setFontSize(14);
+  doc.text('Сравнение стоимости на 1 кг белья:', 20, 50);
+  doc.setFontSize(12);
+  doc.text('Показатель', 20, 60);
+  doc.text('Текущий', 100, 60);
+  doc.text('Новый', 160, 60);
+  doc.line(20, 65, 190, 65);
 
-      doc.setFontSize(12);
-      doc.text('Показатель', 20, 60);
-      doc.text('Текущий', 100, 60);
-      doc.text('Новый', 160, 60);
-      doc.line(20, 65, 190, 65);
+  let yPos = 75;
+  doc.text(I18N[state.lang].chemCost, 20, yPos);
+  doc.text(money(oldChem), 100, yPos);
+  doc.text(money(newChem), 160, yPos);
+  yPos += 10;
 
-      let yPos = 75;
-      doc.text(I18N[state.lang].chemCost, 20, yPos);
-      doc.text(money(oldChem), 100, yPos);
-      doc.text(money(newChem), 160, yPos);
-      yPos += 10;
+  doc.text(I18N[state.lang].energyCost, 20, yPos);
+  doc.text(money(oldEnergyCost), 100, yPos);
+  doc.text(money(newEnergyCost), 160, yPos);
+  yPos += 10;
 
-      doc.text(I18N[state.lang].energyCost, 20, yPos);
-      doc.text(money(oldEnergyCost), 100, yPos);
-      doc.text(money(newEnergyCost), 160, yPos);
-      yPos += 10;
+  doc.text(I18N[state.lang].waterCost, 20, yPos);
+  doc.text(money(oldWaterCost), 100, yPos);
+  doc.text(money(newWaterCost), 160, yPos);
+  yPos += 15;
 
-      doc.text(I18N[state.lang].waterCost, 20, yPos);
-      doc.text(money(oldWaterCost), 100, yPos);
-      doc.text(money(newWaterCost), 160, yPos);
-      yPos += 15;
+  // Экономические показатели
+  const oldRuns = runsPerDay(state.oldTime, state.workHours);
+  const newRuns = runsPerDay(state.newTime, state.workHours);
+  const oldVol = oldRuns * state.machineLoad;
+  const newVol = newRuns * state.machineLoad;
+  const oldTotal = oldChem + oldEnergyCost + oldWaterCost;
+  const newTotal = newChem + newEnergyCost + newWaterCost;
+  const savePerKg = oldTotal - newTotal;
+  const dailySaving = savePerKg * newVol;
+  const monthlySaving = dailySaving * 22;
+  const yearlySaving = dailySaving * 264;
 
-      const oldRuns = runsPerDay(state.oldTime, state.workHours);
-      const newRuns = runsPerDay(state.newTime, state.workHours);
-      const oldVol = oldRuns * state.machineLoad;
-      const newVol = newRuns * state.machineLoad;
-      const oldTotal = oldChem + oldEnergyCost + oldWaterCost;
-      const newTotal = newChem + newEnergyCost + newWaterCost;
-      const savePerKg = oldTotal - newTotal;
-      const dailySaving = savePerKg * newVol;
-      const monthlySaving = dailySaving * 22;
-      const yearlySaving = dailySaving * 264;
+  doc.setFontSize(14);
+  doc.text('Экономические показатели:', 20, yPos);
+  yPos += 10;
 
-      doc.setFontSize(14);
-      doc.text('Экономические показатели:', 20, yPos);
-      yPos += 10;
+  doc.setFontSize(12);
+  doc.text(`Экономия на 1 кг: ${money(savePerKg)}`, 20, yPos);
+  yPos += 10;
+  doc.text(`Экономия в день: ${money(dailySaving)}`, 20, yPos);
+  yPos += 10;
+  doc.text(`Экономия в месяц (22 дня): ${money(monthlySaving)}`, 20, yPos);
+  yPos += 10;
+  doc.text(`Экономия в год (264 дня): ${money(yearlySaving)}`, 20, yPos);
+  yPos += 20;
 
-      doc.setFontSize(12);
-      doc.text(`Экономия на 1 кг: ${money(savePerKg)}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Экономия в день: ${money(dailySaving)}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Экономия в месяц (22 дня): ${money(monthlySaving)}`, 20, yPos);
-      yPos += 10;
-      doc.text(`Экономия в год (264 дня): ${money(yearlySaving)}`, 20, yPos);
-      yPos += 20;
-
-      try {
-        const canvas = $('chartCompare');
-        const imgData = canvas.toDataURL('image/png');
-        doc.setFontSize(14);
-        doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
-        yPos += 10;
-        doc.addImage(imgData, 'PNG', 40, yPos, 130, 80);
-      } catch(e) {
-        console.warn('Chart capture failed', e);
-      }
-
-      doc.save('savings_report.pdf');
+  // 🚀 Правильно добавляем график
+  try {
+    const canvas = $('chartCompare');
+    if (!canvas || !canvas.getContext) {
+      console.warn("Canvas not found or invalid");
+      return;
     }
 
-    $('exportBtn').addEventListener('click', exportPdf);
-    $('calcBtn').addEventListener('click', compute);
+    // Убедимся, что chart существует и обновлён
+    if (chart) {
+      chart.update(); // Обновляем график перед экспортом
+    }
 
+    // Получаем изображение
+    const imgData = canvas.toDataURL('image/png', 1.0); // 1.0 — высокое качество
+    const imgWidth = 130; // ширина изображения в mm
+    const imgHeight = 80; // высота в mm
+
+    // Добавляем заголовок графика
+    doc.setFontSize(14);
+    doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
+    yPos += 10;
+
+    // Добавляем изображение
+    doc.addImage(imgData, 'PNG', 40, yPos, imgWidth, imgHeight);
+
+  } catch (e) {
+    console.error("Ошибка при экспорте графика:", e);
+    // В случае ошибки — просто пишем сообщение
+    doc.setFontSize(12);
+    doc.text('График не доступен для экспорта.', 20, yPos + 10);
+  }
+
+  // Сохраняем PDF
+  doc.save('savings_report.pdf');
+}
     // ===================== i18n =====================
     function applyLang(lang){
       state.lang = lang;
