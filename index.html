@@ -14,8 +14,8 @@
 
   <style>
     :root {
-      --blue: #007BCC;
-      --orange: #FF9900;
+      --blue: #007BCC; /* Основной цвет бренда */
+      --orange: #FF9900; /* Акцентный цвет */
       --muted: #6b7280;
       --bg: linear-gradient(180deg, #e6f3ff, #ffffff);
       --card: #ffffff;
@@ -47,17 +47,17 @@
     }
 
     .logo {
-      width: 60px;
-      height: 60px;
+      width: 200px;
+      height: 200px;
       border-radius: 10px;
-      background: url('https://атлас-про.рф/static/images/logo.png') no-repeat center center;
+      background: url('https://static.tildacdn.com/tild6432-6161-4033-a336-663833306334/_.png') no-repeat center center; 
       background-size: contain;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-weight: 700;
-      font-size: 20px;
+      font-size: 200px;
     }
 
     h1 {
@@ -234,6 +234,7 @@
       font-size: 13px;
     }
 
+    /* Responsive: Table to stacked */
     @media (max-width: 640px) {
       table.dt, table.dt thead, table.dt tbody, table.dt th, table.dt td, table.dt tr {
         display: block;
@@ -267,6 +268,7 @@
       table.dt td[data-label="Действие"]:before { content: ""; }
     }
 
+    /* Validation styles */
     .validation-error {
       border: 1px solid #e53935 !important;
     }
@@ -397,6 +399,7 @@
         </div>
       </section>
 
+      <!-- Right column: program params + results -->
       <section>
         <div class="card">
           <div class="section-title">Параметры программ</div>
@@ -523,6 +526,7 @@
       lang: 'ru'
     }
 
+    // load from localStorage
     function loadState(){
       try{const s = JSON.parse(localStorage.getItem('detergent_calc_v1')); if(s) state = Object.assign(state,s);}catch(e){console.warn(e)}
     }
@@ -530,6 +534,7 @@
 
     loadState();
 
+    // ===================== Validation =====================
     function validateInput(input, min, max) {
       const value = parseFloat(input.value);
       if (isNaN(value) || value < min || (max !== undefined && value > max)) {
@@ -541,6 +546,7 @@
       }
     }
 
+    // ===================== UI: table rows =====================
     function makeRow(item, tableType, idx){
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -550,11 +556,13 @@
         <td data-label="Дозировка"><input type="number" min="0" step="0.01" value="${item.dose||0}" data-field="dose"/></td>
         <td data-label="Действие"><button class="remove" title="Удалить">✖</button></td>
       `;
+      // bindings
       tr.querySelectorAll('input').forEach(inp=>{
         inp.addEventListener('input', ()=>{
           const field = inp.getAttribute('data-field');
           const val = inp.type === 'number' ? parseFloat(inp.value||0) : inp.value;
 
+          // Validate input
           if (inp.type === 'number') {
             const min = field === 'weight' ? 0.001 : 0;
             validateInput(inp, min);
@@ -579,18 +587,22 @@
       state.new.forEach((it,idx)=> newBody.appendChild(makeRow(it,'new',idx)));
     }
 
+    // add row utilities
     function addDetergent(type){ state[type].push({name:'',price:0,weight:1,dose:0}); renderTables(); saveState(); }
     function clearTable(type){ if(confirm('Очистить список?')){ state[type]=[]; renderTables(); saveState(); compute(); } }
 
+    // initial: ensure at least one row each (but only if state empty)
     if(!state.current.length) state.current.push({name:'Пример',price:0,weight:1,dose:0});
     if(!state.new.length) state.new.push({name:'Новое',price:0,weight:1,dose:0});
 
+    // bind buttons
     $('addCurrent').addEventListener('click', ()=>addDetergent('current'));
     $('addNew').addEventListener('click', ()=>addDetergent('new'));
     $('clearCurrent').addEventListener('click', ()=>clearTable('current'));
     $('clearNew').addEventListener('click', ()=>clearTable('new'));
     $('resetBtn').addEventListener('click', ()=>{ if(confirm('Сбросить все данные?')){ localStorage.removeItem('detergent_calc_v1'); location.reload(); } });
 
+    // general inputs binding with validation
     function bindInputWithValidation(inputId, stateProperty, min, max) {
       const input = $(inputId);
       input.addEventListener('input', ()=>{
@@ -613,6 +625,7 @@
     bindInputWithValidation('machinePower', 'machinePower', 0.1, 10);
     bindInputWithValidation('waterConsumption', 'waterConsumption', 1, 20);
 
+    // set UI from state
     function initUI(){
       $('machineLoad').value = state.machineLoad;
       $('energyTariff').value = state.energyTariff;
@@ -628,6 +641,7 @@
       applyLang(state.lang || 'ru');
     }
 
+    // ===================== Improved Calculations =====================
     function costPerKg(list){ 
       if(!Array.isArray(list) || !list.length) return 0; 
       let sum=0; 
@@ -667,6 +681,7 @@
       return Math.floor(minutesAvailable / (timeMin||1)); 
     }
 
+    // compute and render results
     let chart;
     function compute(){
       const inputsValid = [
@@ -774,13 +789,12 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      // Заголовок
       doc.setFontSize(20);
       doc.text(I18N[state.lang].reportTitle, 105, 20, { align: 'center' });
       doc.setFontSize(12);
       doc.text(new Date().toLocaleString(), 105, 30, { align: 'center' });
 
-      // Логотип
+      // Logo
       doc.setFillColor(0, 123, 204);
       doc.rect(180, 10, 15, 15, 'F');
       doc.setFontSize(14);
@@ -788,7 +802,6 @@
       doc.text('A', 187.5, 20, { align: 'center' });
       doc.setTextColor(0, 0, 0);
 
-      // Вычисления
       const oldChem = costPerKg(state.current);
       const newChem = costPerKg(state.new);
       const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
@@ -796,22 +809,31 @@
       const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
       const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
 
-      // Таблица сравнения
-      doc.autoTable({
-        head: [['Показатель', 'Текущий', 'Новый']],
-        body: [
-          [I18N[state.lang].chemCost, money(oldChem), money(newChem)],
-          [I18N[state.lang].energyCost, money(oldEnergyCost), money(newEnergyCost)],
-          [I18N[state.lang].waterCost, money(oldWaterCost), money(newWaterCost)]
-        ],
-        startY: 40,
-        theme: 'grid',
-        styles: { cellPadding: 3, fontSize: 10 },
-        headStyles: { fillColor: [0, 123, 204] },
-        alternateRowStyles: { fillColor: [245, 249, 255] }
-      });
+      doc.setFontSize(14);
+      doc.text('Сравнение стоимости на 1 кг белья:', 20, 50);
 
-      // Экономические показатели
+      doc.setFontSize(12);
+      doc.text('Показатель', 20, 60);
+      doc.text('Текущий', 100, 60);
+      doc.text('Новый', 160, 60);
+      doc.line(20, 65, 190, 65);
+
+      let yPos = 75;
+      doc.text(I18N[state.lang].chemCost, 20, yPos);
+      doc.text(money(oldChem), 100, yPos);
+      doc.text(money(newChem), 160, yPos);
+      yPos += 10;
+
+      doc.text(I18N[state.lang].energyCost, 20, yPos);
+      doc.text(money(oldEnergyCost), 100, yPos);
+      doc.text(money(newEnergyCost), 160, yPos);
+      yPos += 10;
+
+      doc.text(I18N[state.lang].waterCost, 20, yPos);
+      doc.text(money(oldWaterCost), 100, yPos);
+      doc.text(money(newWaterCost), 160, yPos);
+      yPos += 15;
+
       const oldRuns = runsPerDay(state.oldTime, state.workHours);
       const newRuns = runsPerDay(state.newTime, state.workHours);
       const oldVol = oldRuns * state.machineLoad;
@@ -824,8 +846,8 @@
       const yearlySaving = dailySaving * 264;
 
       doc.setFontSize(14);
-      doc.text('Экономические показатели:', 20, doc.autoTable.previous.finalY + 10);
-      let yPos = doc.autoTable.previous.finalY + 20;
+      doc.text('Экономические показатели:', 20, yPos);
+      yPos += 10;
 
       doc.setFontSize(12);
       doc.text(`Экономия на 1 кг: ${money(savePerKg)}`, 20, yPos);
@@ -837,25 +859,15 @@
       doc.text(`Экономия в год (264 дня): ${money(yearlySaving)}`, 20, yPos);
       yPos += 20;
 
-      // График
       try {
         const canvas = $('chartCompare');
-        if (canvas && chart) {
-          chart.update();
-          const imgData = canvas.toDataURL('image/png', 1.0);
-          const imgWidth = 130;
-          const imgHeight = 80;
-
-          doc.setFontSize(14);
-          doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
-          yPos += 10;
-
-          doc.addImage(imgData, 'PNG', 40, yPos, imgWidth, imgHeight);
-        }
-      } catch (e) {
-        console.error("Ошибка при экспорте графика:", e);
-        doc.setFontSize(12);
-        doc.text('График не доступен для экспорта.', 20, yPos + 10);
+        const imgData = canvas.toDataURL('image/png');
+        doc.setFontSize(14);
+        doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
+        yPos += 10;
+        doc.addImage(imgData, 'PNG', 40, yPos, 130, 80);
+      } catch(e) {
+        console.warn('Chart capture failed', e);
       }
 
       doc.save('savings_report.pdf');
@@ -864,6 +876,7 @@
     $('exportBtn').addEventListener('click', exportPdf);
     $('calcBtn').addEventListener('click', compute);
 
+    // ===================== i18n =====================
     function applyLang(lang){
       state.lang = lang;
       const s = I18N[lang] || I18N.ru;
@@ -887,6 +900,7 @@
     }
     $('langSelect').addEventListener('change', ()=>{ applyLang($('langSelect').value); compute(); });
 
+    // ===================== init =====================
     initUI(); renderTables(); compute();
 
     window.addEventListener('beforeunload', saveState);
