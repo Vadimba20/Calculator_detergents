@@ -13,76 +13,273 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    :root{--blue:#2c7be5;--green:#2fcb7c;--muted:#6b7280;--bg:#f6f9ff;--card:#ffffff}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#f3f7fb,#ffffff);font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:#0b1220}
-    .wrap{max-width:1100px;margin:18px auto;padding:12px}
-    header{display:flex;align-items:center;gap:12px}
-    .logo{width:54px;height:54px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
-    h1{font-size:18px;margin:0}
-    p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
+    :root {
+      --blue: #007BCC; /* Основной цвет бренда */
+      --orange: #FF9900; /* Акцентный цвет */
+      --muted: #6b7280;
+      --bg: linear-gradient(180deg, #e6f3ff, #ffffff);
+      --card: #ffffff;
+      --text: #0b1220;
+      --border: #e6eef8;
+    }
 
-    .top-controls{margin-left:auto;display:flex;gap:8px}
-    select,input[type=search]{padding:8px;border-radius:8px;border:1px solid #e6eef8}
-    button{cursor:pointer}
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      font-family: 'Inter', 'Roboto', sans-serif;
+      color: var(--text);
+    }
 
-    main{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
-    @media(min-width:980px){main{grid-template-columns:360px 1fr}}
+    .wrap {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 12px;
+    }
 
-    .card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 8px 20px rgba(15,30,60,0.06)}
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=number], input[type=text]{width:100%;padding:8px;border-radius:8px;border:1px solid #e9f0fb}
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
 
-    .section-title{font-weight:600;color:var(--blue);margin-bottom:8px}
+    .logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      background: url('https://атлас-про.рф/static/images/logo.png') no-repeat center center;
+      background-size: contain;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 20px;
+    }
 
-    /* tables for detergents */
-    .table-wrap{overflow:auto}
-    table.dt{width:100%;border-collapse:collapse}
-    table.dt thead th{background:#f0f7ff;padding:8px;border-bottom:1px solid #e6f0ff;color:#234}
-    table.dt td{padding:6px;border-bottom:1px solid #f4f9ff}
-    table.dt input{width:100%;}
-    .actions{display:flex;gap:8px;margin-top:10px}
-    .btn{background:var(--blue);color:#fff;border:0;padding:8px 12px;border-radius:8px}
-    .btn.ghost{background:transparent;border:1px solid var(--blue);color:var(--blue)}
-    .btn.secondary{background:#6b7280}
-    .remove{color:#e53935;font-weight:700;border:none;background:transparent;cursor:pointer}
+    h1 {
+      font-size: 18px;
+      margin: 0;
+      color: var(--text);
+      font-weight: 600;
+    }
 
-    /* results */
-    .results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    @media(max-width:640px){.results-grid{grid-template-columns:1fr}}
-    .stat{padding:12px;border-radius:10px;background:#fff}
-    .stat h4{margin:0;font-size:12px;color:var(--muted)}
-    .stat p{margin:6px 0 0;font-size:18px;font-weight:700}
+    p.lead {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
 
-    /* small footer */
-    footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+    .top-controls {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
 
-    /* responsive: table -> stacked on small screens */
-    @media(max-width:640px){
-      table.dt, table.dt thead, table.dt tbody, table.dt th, table.dt td, table.dt tr{display:block}
-      table.dt thead tr{position:absolute;top:-9999px;left:-9999px}
-      table.dt tr{margin:0 0 12px}
-      table.dt td{border:none;position:relative;padding-left:50%}
-      table.dt td:before{position:absolute;left:12px;top:10px;width:45%;padding-right:10px;white-space:nowrap;font-weight:600}
-      table.dt td[data-label="Название"]:before{content:"Название"}
-      table.dt td[data-label="Цена"]:before{content:"Цена за упаковку (₽)"}
-      table.dt td[data-label="Вес"]:before{content:"Вес упаковки (кг)"}
-      table.dt td[data-label="Дозировка"]:before{content:"Дозировка (мл/г)"}
-      table.dt td[data-label="Действие"]:before{content:""}
+    select, input[type=search] {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--orange);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--blue);
+      color: var(--blue);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 980px) {
+      main { grid-template-columns: 360px 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(15, 30, 60, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type=number], input[type=text] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    table.dt {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.dt thead th {
+      background: #f0f7ff;
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    table.dt td {
+      padding: 8px;
+      border-bottom: 1px solid #f4f9ff;
+    }
+
+    table.dt input {
+      width: 100%;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .remove {
+      color: #e53935;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    .stat {
+      padding: 12px;
+      border-radius: 10px;
+      background: #f8fbff;
+      border: 1px solid #e6f0ff;
+    }
+
+    .stat h4 {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stat p {
+      margin: 6px 0 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    footer {
+      margin-top: 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Responsive: Table to stacked */
+    @media (max-width: 640px) {
+      table.dt, table.dt thead, table.dt tbody, table.dt th, table.dt td, table.dt tr {
+        display: block;
+      }
+      table.dt thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      table.dt tr {
+        margin: 0 0 12px;
+      }
+      table.dt td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+      }
+      table.dt td:before {
+        position: absolute;
+        left: 12px;
+        top: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+      }
+      table.dt td[data-label="Название"]:before { content: "Название"; }
+      table.dt td[data-label="Цена"]:before { content: "Цена за упаковку (₽)"; }
+      table.dt td[data-label="Вес"]:before { content: "Вес упаковки (кг)"; }
+      table.dt td[data-label="Дозировка"]:before { content: "Дозировка (мл/г)"; }
+      table.dt td[data-label="Действие"]:before { content: ""; }
     }
 
     /* Validation styles */
     .validation-error {
       border: 1px solid #e53935 !important;
     }
-    
+
     .tooltip {
       position: relative;
       display: inline-block;
       border-bottom: 1px dotted #ccc;
       cursor: help;
     }
-    
+
     .tooltip .tooltiptext {
       visibility: hidden;
       width: 200px;
@@ -100,24 +297,23 @@
       transition: opacity 0.3s;
       font-size: 12px;
     }
-    
+
     .tooltip:hover .tooltiptext {
       visibility: visible;
       opacity: 1;
     }
-    
+
     .info-text {
       font-size: 12px;
       color: var(--muted);
       margin-top: 4px;
     }
-
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="logo">L</div>
+      <div class="logo"></div>
       <div>
         <h1 id="appTitle">Калькулятор экономии моющих средств</h1>
         <p class="lead">Покажите клиенту экономию на химии и энергии при переходе на современные средства</p>
@@ -128,12 +324,12 @@
           <option value="ru">RU</option>
           <option value="en">EN</option>
         </select>
-        <button id="exportBtn" class="btn">Экспорт в PDF</button>
+        <button id="exportBtn" class="btn btn-secondary">Экспорт в PDF</button>
       </div>
     </header>
 
     <main>
-      <!-- left column: inputs -->
+      <!-- Left column: inputs -->
       <section class="card">
         <div class="section-title">Общие параметры</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -158,7 +354,7 @@
           </div>
         </div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eef6ff" />
+        <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
 
         <div class="section-title">Текущие моющие средства</div>
         <div class="table-wrap">
@@ -176,11 +372,11 @@
           </table>
         </div>
         <div class="actions">
-          <button class="btn" id="addCurrent">+ Добавить средство</button>
-          <button class="btn ghost" id="clearCurrent">Сбросить</button>
+          <button class="btn btn-primary" id="addCurrent">+ Добавить средство</button>
+          <button class="btn btn-outline" id="clearCurrent">Сбросить</button>
         </div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eef6ff" />
+        <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
 
         <div class="section-title">Наши новые средства</div>
         <div class="table-wrap">
@@ -198,13 +394,12 @@
           </table>
         </div>
         <div class="actions">
-          <button class="btn" id="addNew">+ Добавить средство</button>
-          <button class="btn ghost" id="clearNew">Сбросить</button>
+          <button class="btn btn-primary" id="addNew">+ Добавить средство</button>
+          <button class="btn btn-outline" id="clearNew">Сбросить</button>
         </div>
-
       </section>
 
-      <!-- right column: program params + results -->
+      <!-- Right column: program params + results -->
       <section>
         <div class="card">
           <div class="section-title">Параметры программ</div>
@@ -226,12 +421,12 @@
               <input id="newTime" type="number" min="1" value="45" />
             </div>
           </div>
-          
+
           <div style="margin-top:10px">
             <label>Мощность стиральной машины (кВт) <span class="tooltip">ℹ<span class="tooltiptext">Указана в технических характеристиках машины</span></span></label>
             <input id="machinePower" type="number" min="0.1" step="0.1" value="2.5" />
           </div>
-          
+
           <div style="margin-top:10px">
             <label>Расход воды (л/кг белья) <span class="tooltip">ℹ<span class="tooltiptext">Примерный расход воды на килограмм белья</span></span></label>
             <input id="waterConsumption" type="number" min="1" step="0.5" value="10" />
@@ -239,8 +434,8 @@
           </div>
 
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
-            <button class="btn" id="calcBtn">Рассчитать</button>
-            <button class="btn ghost" id="resetBtn">Сбросить всё</button>
+            <button class="btn btn-primary" id="calcBtn">Рассчитать</button>
+            <button class="btn btn-outline" id="resetBtn">Сбросить всё</button>
             <div style="margin-left:auto;color:var(--muted);font-size:13px">Автосохранение: включено</div>
           </div>
         </div>
@@ -276,10 +471,8 @@
               </tbody>
             </table>
           </div>
-
         </div>
       </section>
-
     </main>
 
     <footer>
@@ -368,13 +561,13 @@
         inp.addEventListener('input', ()=>{
           const field = inp.getAttribute('data-field');
           const val = inp.type === 'number' ? parseFloat(inp.value||0) : inp.value;
-          
+
           // Validate input
           if (inp.type === 'number') {
             const min = field === 'weight' ? 0.001 : 0;
             validateInput(inp, min);
           }
-          
+
           state[tableType][idx][field] = val;
           saveState(); compute();
         });
@@ -385,13 +578,11 @@
       return tr;
     }
 
-    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'&quot;'); }
 
     function renderTables(){
-      // current
       const curBody = $('currentTable').querySelector('tbody'); curBody.innerHTML='';
       state.current.forEach((it,idx)=> curBody.appendChild(makeRow(it,'current',idx)));
-      // new
       const newBody = $('newTable').querySelector('tbody'); newBody.innerHTML='';
       state.new.forEach((it,idx)=> newBody.appendChild(makeRow(it,'new',idx)));
     }
@@ -451,7 +642,6 @@
     }
 
     // ===================== Improved Calculations =====================
-    // cost: Σ (price_package × dose / (weight_package * 1000))
     function costPerKg(list){ 
       if(!Array.isArray(list) || !list.length) return 0; 
       let sum=0; 
@@ -465,21 +655,13 @@
       return sum; 
     }
 
-    // Improved Energy formula with machine power
     function energyKWh(temp, timeMin, power){
-      // Heating energy (assuming 80% of power for heating)
       const heatingPower = power * 0.8;
-      // Motor energy (assuming 20% of power for motor)
       const motorPower = power * 0.2;
-      
-      // Heating time (estimated as 50% of program time or until target temp reached)
-      const heatingTime = Math.min(timeMin * 0.5, 30); // Max 30 minutes for heating
+      const heatingTime = Math.min(timeMin * 0.5, 30);
       const motorTime = timeMin;
-      
-      // Calculate energy consumption
-      const heatingEnergy = (heatingPower * heatingTime / 60) * (temp / 80); // Normalized to 80°C
+      const heatingEnergy = (heatingPower * heatingTime / 60) * (temp / 80);
       const motorEnergy = motorPower * motorTime / 60;
-      
       return heatingEnergy + motorEnergy;
     }
 
@@ -488,14 +670,12 @@
       return (e * (tariff||0)) / (machineLoad||1);
     }
 
-    // Water cost calculation
     function waterCostPerKg(waterConsumption, tariff, machineLoad) {
-      const waterPerLoad = waterConsumption * machineLoad; // liters per load
-      const waterCostPerLoad = (waterPerLoad * tariff) / 1000; // convert to m³ and calculate cost
-      return waterCostPerLoad / machineLoad; // cost per kg
+      const waterPerLoad = waterConsumption * machineLoad;
+      const waterCostPerLoad = (waterPerLoad * tariff) / 1000;
+      return waterCostPerLoad / machineLoad;
     }
 
-    // runs per day: minutesAvailable / time_program; minutesAvailable = workHours*60
     function runsPerDay(timeMin, workHours){ 
       const minutesAvailable = (workHours||9) * 60; 
       return Math.floor(minutesAvailable / (timeMin||1)); 
@@ -504,7 +684,6 @@
     // compute and render results
     let chart;
     function compute(){
-      // Validate all inputs before calculation
       const inputsValid = [
         validateInput($('machineLoad'), 1),
         validateInput($('energyTariff'), 0),
@@ -517,21 +696,16 @@
         validateInput($('machinePower'), 0.1, 10),
         validateInput($('waterConsumption'), 1, 20)
       ].every(valid => valid);
-      
+
       if (!inputsValid) {
         alert('Пожалуйста, проверьте введенные данные. Некоторые значения некорректны.');
         return;
       }
 
-      // chemical costs
       const oldChem = costPerKg(state.current);
       const newChem = costPerKg(state.new);
-      
-      // energy costs - using improved formula
       const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
       const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
-      
-      // water costs
       const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
       const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
 
@@ -539,17 +713,15 @@
       const newTotal = newChem + newEnergyCost + newWaterCost;
       const savePerKg = oldTotal - newTotal;
 
-      // runs/volumes
       const oldRuns = runsPerDay(state.oldTime, state.workHours);
       const newRuns = runsPerDay(state.newTime, state.workHours);
       const oldVol = oldRuns * state.machineLoad;
       const newVol = newRuns * state.machineLoad;
 
-      const dailySaving = savePerKg * newVol; // assume client moves to new program throughput
-      const monthlySaving = dailySaving * 22; // approx working days
-      const yearlySaving = dailySaving * 264; // 12*22
+      const dailySaving = savePerKg * newVol;
+      const monthlySaving = dailySaving * 22;
+      const yearlySaving = dailySaving * 264;
 
-      // fill UI
       $('costOldChem').innerText = money(oldChem);
       $('costNewChem').innerText = money(newChem);
       $('costOldEnergy').innerText = money(oldEnergyCost);
@@ -574,7 +746,6 @@
       $('t_month_save').innerText = money(monthlySaving);
       $('t_year_save').innerText = money(yearlySaving);
 
-      // chart
       const ctx = $('chartCompare').getContext('2d');
       const dataOld = [oldChem, oldEnergyCost, oldWaterCost];
       const dataNew = [newChem, newEnergyCost, newWaterCost];
@@ -584,8 +755,8 @@
           data: {
             labels:[I18N[state.lang].chemistry, I18N[state.lang].energy, I18N[state.lang].water],
             datasets:[
-              {label: I18N[state.lang].current, data:dataOld, backgroundColor: 'rgba(44,123,229,0.8)'},
-              {label: I18N[state.lang].new, data:dataNew, backgroundColor: 'rgba(47,203,124,0.8)'}
+              {label: I18N[state.lang].current, data:dataOld, backgroundColor: 'rgba(0,123,204,0.8)'},
+              {label: I18N[state.lang].new, data:dataNew, backgroundColor: 'rgba(255,153,0,0.8)'}
             ]
           },
           options:{
@@ -616,65 +787,53 @@
     // ===================== PDF export =====================
     async function exportPdf(){
       const { jsPDF } = window.jspdf;
-      
-      // Create a new PDF
       const doc = new jsPDF();
-      
-      // Add title
+
       doc.setFontSize(20);
       doc.text(I18N[state.lang].reportTitle, 105, 20, { align: 'center' });
-      
-      // Add date
       doc.setFontSize(12);
       doc.text(new Date().toLocaleString(), 105, 30, { align: 'center' });
-      
-      // Add logo
-      doc.setFillColor(44, 123, 229);
+
+      // Logo
+      doc.setFillColor(0, 123, 204);
       doc.rect(180, 10, 15, 15, 'F');
       doc.setFontSize(14);
       doc.setTextColor(255, 255, 255);
-      doc.text('L', 187.5, 20, { align: 'center' });
+      doc.text('A', 187.5, 20, { align: 'center' });
       doc.setTextColor(0, 0, 0);
-      
-      // Calculate values for the table
+
       const oldChem = costPerKg(state.current);
       const newChem = costPerKg(state.new);
       const oldEnergyCost = energyCostPerKg(state.oldTemp, state.oldTime, state.energyTariff, state.machineLoad, state.machinePower);
       const newEnergyCost = energyCostPerKg(state.newTemp, state.newTime, state.energyTariff, state.machineLoad, state.machinePower);
       const oldWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
       const newWaterCost = waterCostPerKg(state.waterConsumption, state.waterTariff, state.machineLoad);
-      
-      // Add summary table
+
       doc.setFontSize(14);
       doc.text('Сравнение стоимости на 1 кг белья:', 20, 50);
-      
+
       doc.setFontSize(12);
       doc.text('Показатель', 20, 60);
       doc.text('Текущий', 100, 60);
       doc.text('Новый', 160, 60);
-      
-      // Add horizontal line
       doc.line(20, 65, 190, 65);
-      
+
       let yPos = 75;
-      
-      // Add table rows
       doc.text(I18N[state.lang].chemCost, 20, yPos);
       doc.text(money(oldChem), 100, yPos);
       doc.text(money(newChem), 160, yPos);
       yPos += 10;
-      
+
       doc.text(I18N[state.lang].energyCost, 20, yPos);
       doc.text(money(oldEnergyCost), 100, yPos);
       doc.text(money(newEnergyCost), 160, yPos);
       yPos += 10;
-      
+
       doc.text(I18N[state.lang].waterCost, 20, yPos);
       doc.text(money(oldWaterCost), 100, yPos);
       doc.text(money(newWaterCost), 160, yPos);
       yPos += 15;
-      
-      // Add economic indicators
+
       const oldRuns = runsPerDay(state.oldTime, state.workHours);
       const newRuns = runsPerDay(state.newTime, state.workHours);
       const oldVol = oldRuns * state.machineLoad;
@@ -685,41 +844,32 @@
       const dailySaving = savePerKg * newVol;
       const monthlySaving = dailySaving * 22;
       const yearlySaving = dailySaving * 264;
-      
+
       doc.setFontSize(14);
       doc.text('Экономические показатели:', 20, yPos);
       yPos += 10;
-      
+
       doc.setFontSize(12);
       doc.text(`Экономия на 1 кг: ${money(savePerKg)}`, 20, yPos);
       yPos += 10;
-      
       doc.text(`Экономия в день: ${money(dailySaving)}`, 20, yPos);
       yPos += 10;
-      
       doc.text(`Экономия в месяц (22 дня): ${money(monthlySaving)}`, 20, yPos);
       yPos += 10;
-      
       doc.text(`Экономия в год (264 дня): ${money(yearlySaving)}`, 20, yPos);
       yPos += 20;
-      
-      // Add chart as image if available
+
       try {
         const canvas = $('chartCompare');
         const imgData = canvas.toDataURL('image/png');
-        
-        // Add chart title
         doc.setFontSize(14);
         doc.text('Сравнение стоимости:', 105, yPos, { align: 'center' });
         yPos += 10;
-        
-        // Add chart image
         doc.addImage(imgData, 'PNG', 40, yPos, 130, 80);
       } catch(e) {
         console.warn('Chart capture failed', e);
       }
-      
-      // Save the PDF
+
       doc.save('savings_report.pdf');
     }
 
@@ -738,15 +888,14 @@
       $('calcBtn').innerText = s.calc || 'Calculate';
       $('exportBtn').innerText = s.export || 'Export';
       $('resetBtn').innerText = s.resetAll || 'Reset all';
-      
-      // Update chart labels if chart exists
+
       if (chart) {
         chart.data.labels = [s.chemistry, s.energy, s.water];
         chart.data.datasets[0].label = s.current;
         chart.data.datasets[1].label = s.new;
         chart.update();
       }
-      
+
       saveState();
     }
     $('langSelect').addEventListener('change', ()=>{ applyLang($('langSelect').value); compute(); });
@@ -754,9 +903,7 @@
     // ===================== init =====================
     initUI(); renderTables(); compute();
 
-    // autosave on unload
     window.addEventListener('beforeunload', saveState);
-
   </script>
 </body>
 </html>
